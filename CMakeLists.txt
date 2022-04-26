@@ -50,6 +50,7 @@ endif()
 
 # Dependencies ################################################################
 #
+
 # external library: libPNG (mandatory)
 find_package(PNG 1.2.9 REQUIRED)
 
