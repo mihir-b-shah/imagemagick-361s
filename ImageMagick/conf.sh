@@ -1,0 +1,1 @@
+./configure CC=g++ CFLAGS=-std=c++17 --without-magick-plus-plus --without-perl --without-dps --without-freetype --without-jbig --without-png --without-jpeg --without-lcms --without-lcms2 --without-lzma --without-tiff --without-wmf --without-xml --without-bzlib --disable-openmp --without-x --prefix=/home/mihirs/nets/ImageMagick/build/ --with-openjp2=yes

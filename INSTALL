@@ -1,8 +1,0 @@
-
-for libpng:
- - make && make install
-
-Then run, substituting pngtest and the examples file with our executable.
-
-g++ -o pngtest examples/pngtest.cc src/pngwriter.cc -I src/ -I libpng/buildy/include/ -L libp
-ildy/lib/ -DNO_FREETYPE -lpng
