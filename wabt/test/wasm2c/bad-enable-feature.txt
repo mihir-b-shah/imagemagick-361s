@@ -1,6 +1,0 @@
-;;; RUN: %(wasm2c)s
-;;; ARGS: --enable-exceptions %(in_file)s
-;;; ERROR: 1
-(;; STDERR ;;;
-wasm2c currently only supports a fixed set of features.
-;;; STDERR ;;)
