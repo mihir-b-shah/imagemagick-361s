@@ -96,6 +96,8 @@ private:
 
 jp2_sandbox* sandbox = nullptr;
 
+#define INIT_SANDBOX() if (sandbox == nullptr) { sandbox = new jp2_sandbox(); }
+
 #endif
 
 /*
@@ -607,8 +609,8 @@ ModuleExport size_t RegisterJP2Image(void)
   *version='\0';
 #if defined(MAGICKCORE_LIBOPENJP2_DELEGATE)
 
-  const char* vstr = opj_version();
-  //const char* vstr = sandbox->sb()->invoke_sandbox_function(opj_version).UNSAFE_unverified();
+  INIT_SANDBOX()
+  const char* vstr = sandbox->sb()->invoke_sandbox_function(opj_version).UNSAFE_unverified();
   (void) FormatLocaleString(version,MagickPathExtent,"%s",vstr);
 #endif
   entry=AcquireMagickInfo("JP2","JP2","JPEG-2000 File Format Syntax");
