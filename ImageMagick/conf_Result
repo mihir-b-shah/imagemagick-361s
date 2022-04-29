@@ -1,2 +1,739 @@
+checking build system type... x86_64-pc-linux-gnu
+checking host system type... x86_64-pc-linux-gnu
+checking target system type... x86_64-pc-linux-gnu
+checking for a BSD-compatible install... /usr/bin/install -c
+checking whether build environment is sane... yes
+checking for a thread-safe mkdir -p... /usr/bin/mkdir -p
+checking for gawk... gawk
+checking whether make sets $(MAKE)... yes
+checking whether make supports nested variables... yes
+checking whether UID '1000' is supported by ustar format... yes
+checking whether GID '1000' is supported by ustar format... yes
+checking how to create a ustar tar archive... gnutar
+checking whether make supports nested variables... (cached) yes
+Configuring ImageMagick 7.1.0-32
+checking whether build environment is sane... yes
+checking whether make supports the include directive... yes (GNU style)
+checking for gcc... g++
+checking whether the C compiler works... yes
+checking for C compiler default output file name... a.out
+checking for suffix of executables... 
+checking whether we are cross compiling... no
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether g++ accepts -g... yes
+checking for g++ option to accept ISO C89... unsupported
+checking whether g++ understands -c and -o together... yes
+checking dependency style of g++... gcc3
+checking how to run the C preprocessor... g++ -E
+checking for grep that handles long lines and -e... /usr/bin/grep
+checking for egrep... /usr/bin/grep -E
+checking for ANSI C header files... yes
+checking for sys/types.h... yes
+checking for sys/stat.h... yes
+checking for stdlib.h... yes
+checking for string.h... yes
+checking for memory.h... yes
+checking for strings.h... yes
+checking for inttypes.h... yes
+checking for stdint.h... yes
+checking for unistd.h... yes
+checking minix/config.h usability... no
+checking minix/config.h presence... no
+checking for minix/config.h... no
+checking whether it is safe to define __EXTENSIONS__... yes
+checking for ar... ar
+checking the archiver (ar) interface... ar
+checking for gcc... (cached) g++
+checking whether we are using the GNU C compiler... (cached) yes
+checking whether g++ accepts -g... (cached) yes
+checking for g++ option to accept ISO C89... (cached) unsupported
+checking whether g++ understands -c and -o together... (cached) yes
+checking dependency style of g++... (cached) gcc3
+checking how to run the C preprocessor... g++ -E
+checking for a sed that does not truncate output... /usr/bin/sed
+checking for fgrep... /usr/bin/grep -F
+checking how to print strings... printf
+checking for ld used by g++... /usr/bin/ld
+checking if the linker (/usr/bin/ld) is GNU ld... yes
+checking for ld used by g++... (cached) /usr/bin/ld
+checking if the linker (/usr/bin/ld) is GNU ld... (cached) yes
+checking for g++ option to accept ISO C99... unsupported
+checking for C compiler vendor... gnu
+checking CFLAGS for most reasonable warnings... -Wall
+checking whether make sets $(MAKE)... (cached) yes
+checking whether ln -s works... yes
+checking for a sed that does not truncate output... (cached) /usr/bin/sed
+checking for gawk... (cached) gawk
+checking if malloc debugging is wanted... no
+checking for __attribute__... yes
+checking for gcc architecture flag... 
+checking for x86 cpuid 0 output... 15:756e6547:6c65746e:49656e69
+checking for x86 cpuid 1 output... 806e9:1040800:feda3203:1f8bfbff
+checking whether C compiler accepts -mtune=core2... yes
+checking for gcc architecture flag... -mtune=core2
+checking for pkg-config... /usr/bin/pkg-config
+checking pkg-config is at least version 0.20... yes
+checking for C compiler vendor... (cached) gnu
+checking if LD -Wl,--version-script works... yes
+checking for linker lazyload option... none
+checking whether g++ is Clang... no
+checking whether pthreads work with "-pthread" and "-lpthread"... yes
+checking for joinable pthread attribute... PTHREAD_CREATE_JOINABLE
+checking whether more special flags are required for pthreads... no
+checking for PTHREAD_PRIO_INHERIT... yes
+checking for OpenCL library... disabled
+checking for special C compiler options needed for large files... no
+checking for _FILE_OFFSET_BITS value needed for large files... no
+checking for _LARGEFILE_SOURCE value needed for large files... no
+checking Linux compatible sendfile()... no
+checking for BSD- or MS-compatible name lister (nm)... /usr/bin/nm -B
+checking the name lister (/usr/bin/nm -B) interface... BSD nm
+checking the maximum length of command line arguments... 1572864
+checking how to convert x86_64-pc-linux-gnu file names to x86_64-pc-linux-gnu format... func_convert_file_noop
+checking how to convert x86_64-pc-linux-gnu file names to toolchain format... func_convert_file_noop
+checking for /usr/bin/ld option to reload object files... -r
+checking for objdump... objdump
+checking how to recognize dependent libraries... pass_all
+checking for dlltool... no
+checking how to associate runtime and link libraries... printf %s\n
+checking for archiver @FILE support... @
+checking for strip... strip
+checking for ranlib... ranlib
+checking command to parse /usr/bin/nm -B output from g++ object... ok
+checking for sysroot... no
+checking for a working dd... /usr/bin/dd
+checking how to truncate binary pipes... /usr/bin/dd bs=4096 count=1
+checking for mt... mt
+checking if mt is a manifest tool... no
+checking for dlfcn.h... yes
+checking for objdir... .libs
+checking if g++ supports -fno-rtti -fno-exceptions... yes
+checking for g++ option to produce PIC... -fPIC -DPIC
+checking if g++ PIC flag -fPIC -DPIC works... yes
+checking if g++ static flag -static works... yes
+checking if g++ supports -c -o file.o... yes
+checking if g++ supports -c -o file.o... (cached) yes
+checking whether the g++ linker (/usr/bin/ld -m elf_x86_64) supports shared libraries... yes
+checking whether -lc should be explicitly linked in... no
+checking dynamic linker characteristics... GNU/Linux ld.so
+checking how to hardcode library paths into programs... immediate
+checking for shl_load... no
+checking for shl_load in -ldld... no
+checking for dlopen... no
+checking for dlopen in -ldl... yes
+checking whether a program can dlopen itself... no
+checking whether stripping libraries is possible... yes
+checking if libtool supports shared libraries... yes
+checking whether to build shared libraries... yes
+checking whether to build static libraries... yes
+checking for g++... g++
+checking whether we are using the GNU C++ compiler... yes
+checking whether g++ accepts -g... yes
+checking dependency style of g++... gcc3
+checking how to run the C++ preprocessor... g++ -E
+checking for ld used by g++... /usr/bin/ld -m elf_x86_64
+checking if the linker (/usr/bin/ld -m elf_x86_64) is GNU ld... yes
+checking whether the g++ linker (/usr/bin/ld -m elf_x86_64) supports shared libraries... yes
+checking for g++ option to produce PIC... -fPIC -DPIC
+checking if g++ PIC flag -fPIC -DPIC works... yes
+checking if g++ static flag -static works... yes
+checking if g++ supports -c -o file.o... yes
+checking if g++ supports -c -o file.o... (cached) yes
+checking whether the g++ linker (/usr/bin/ld -m elf_x86_64) supports shared libraries... yes
+checking dynamic linker characteristics... (cached) GNU/Linux ld.so
+checking how to hardcode library paths into programs... immediate
+checking whether to enable maintainer-specific portions of Makefiles... no
+checking whether g++ needs -traditional... no
+checking for ANSI C header files... (cached) yes
+checking whether to enable assertions... yes
+checking for dirent.h that defines DIR... yes
+checking for library containing opendir... none required
+checking arm/limits.h usability... no
+checking arm/limits.h presence... no
+checking for arm/limits.h... no
+checking arpa/inet.h usability... yes
+checking arpa/inet.h presence... yes
+checking for arpa/inet.h... yes
+checking complex.h usability... yes
+checking complex.h presence... yes
+checking for complex.h... yes
+checking errno.h usability... yes
+checking errno.h presence... yes
+checking for errno.h... yes
+checking fcntl.h usability... yes
+checking fcntl.h presence... yes
+checking for fcntl.h... yes
+checking float.h usability... yes
+checking float.h presence... yes
+checking for float.h... yes
+checking limits.h usability... yes
+checking limits.h presence... yes
+checking for limits.h... yes
+checking linux/unistd.h usability... yes
+checking linux/unistd.h presence... yes
+checking for linux/unistd.h... yes
+checking locale.h usability... yes
+checking locale.h presence... yes
+checking for locale.h... yes
+checking machine/param.h usability... no
+checking machine/param.h presence... no
+checking for machine/param.h... no
+checking mach-o/dyld.h usability... no
+checking mach-o/dyld.h presence... no
+checking for mach-o/dyld.h... no
+checking malloc.h usability... yes
+checking malloc.h presence... yes
+checking for malloc.h... yes
+checking netdb.h usability... yes
+checking netdb.h presence... yes
+checking for netdb.h... yes
+checking netinet/in.h usability... yes
+checking netinet/in.h presence... yes
+checking for netinet/in.h... yes
+checking OS.h usability... no
+checking OS.h presence... no
+checking for OS.h... no
+checking process.h usability... no
+checking process.h presence... no
+checking for process.h... no
+checking sun_prefetch.h usability... no
+checking sun_prefetch.h presence... no
+checking for sun_prefetch.h... no
+checking stdarg.h usability... yes
+checking stdarg.h presence... yes
+checking for stdarg.h... yes
+checking stddef.h usability... yes
+checking stddef.h presence... yes
+checking for stddef.h... yes
+checking sys/ipc.h usability... yes
+checking sys/ipc.h presence... yes
+checking for sys/ipc.h... yes
+checking sys/mman.h usability... yes
+checking sys/mman.h presence... yes
+checking for sys/mman.h... yes
+checking sys/resource.h usability... yes
+checking sys/resource.h presence... yes
+checking for sys/resource.h... yes
+checking sys/sendfile.h usability... yes
+checking sys/sendfile.h presence... yes
+checking for sys/sendfile.h... yes
+checking sys/socket.h usability... yes
+checking sys/socket.h presence... yes
+checking for sys/socket.h... yes
+checking sys/syslimits.h usability... no
+checking sys/syslimits.h presence... no
+checking for sys/syslimits.h... no
+checking sys/time.h usability... yes
+checking sys/time.h presence... yes
+checking for sys/time.h... yes
+checking sys/times.h usability... yes
+checking sys/times.h presence... yes
+checking for sys/times.h... yes
+checking sys/uio.h usability... yes
+checking sys/uio.h presence... yes
+checking for sys/uio.h... yes
+checking sys/wait.h usability... yes
+checking sys/wait.h presence... yes
+checking for sys/wait.h... yes
+checking utime.h usability... yes
+checking utime.h presence... yes
+checking for utime.h... yes
+checking wchar.h usability... yes
+checking wchar.h presence... yes
+checking for wchar.h... yes
+checking xlocale.h usability... no
+checking xlocale.h presence... no
+checking for xlocale.h... no
+checking for stdbool.h that conforms to C99... no
+checking for _Bool... no
+checking for working volatile... yes
+checking for preprocessor stringizing operator... yes
+checking whether stat file-mode macros are broken... no
+checking whether time.h and sys/time.h may both be included... yes
+checking whether struct tm is in sys/time.h or time.h... time.h
+checking for struct tm.tm_zone... yes
+checking whether #! works in shell scripts... yes
+checking whether char is unsigned... no
+checking for an ANSI C-conforming const... yes
+checking for inline... inline
+checking for C/C++ restrict keyword... __restrict
+checking for working volatile... (cached) yes
+checking whether byte ordering is bigendian... no
+checking for int8_t... yes
+checking for int16_t... yes
+checking for int32_t... yes
+checking for int64_t... yes
+checking for unsigned long long int... yes
+checking for long long int... yes
+checking for intmax_t... yes
+checking for intptr_t... yes
+checking for mbstate_t... yes
+checking for mode_t... yes
+checking for off_t... yes
+checking for pid_t... yes
+checking for size_t... yes
+checking for ssize_t... yes
+checking for uid_t in sys/types.h... yes
+checking for uint8_t... yes
+checking for uint16_t... yes
+checking for uint32_t... yes
+checking for uint64_t... yes
+checking for uintmax_t... yes
+checking for uintptr_t... yes
+checking size of float_t... 4
+checking size of double_t... 8
+checking size of float... 4
+checking size of double... 8
+checking size of long double... 16
+checking size of unsigned long long... 8
+checking size of ssize_t... 8
+checking size of void *... 8
+checking whether our compiler supports __func__... yes
+checking whether closedir returns void... no
+checking for stdlib.h... (cached) yes
+checking for unistd.h... (cached) yes
+checking for sys/param.h... yes
+checking for getpagesize... yes
+checking for working mmap... yes
+checking vfork.h usability... no
+checking vfork.h presence... no
+checking for vfork.h... no
+checking for fork... yes
+checking for vfork... yes
+checking for working fork... yes
+checking for working vfork... (cached) yes
+checking for stdlib.h... (cached) yes
+checking for GNU libc compatible malloc... yes
+checking for working memcmp... yes
+checking for stdlib.h... (cached) yes
+checking for GNU libc compatible realloc... yes
+checking sys/select.h usability... yes
+checking sys/select.h presence... yes
+checking for sys/select.h... yes
+checking for sys/socket.h... (cached) yes
+checking types of arguments for select... int,fd_set *,struct timeval *
+checking for working strtod... yes
+checking whether strerror_r is declared... yes
+checking for strerror_r... yes
+checking whether strerror_r returns char *... yes
+checking for vprintf... yes
+checking for _doprnt... no
+checking for sqrt in -lm... yes
+checking for library containing gethostbyname... none required
+checking for library containing socket... none required
+checking for library containing clock_gettime... none required
+checking whether clock_gettime supports CLOCK_REALTIME... yes
+checking whether pread is declared... yes
+checking whether pwrite is declared... yes
+checking whether strlcpy is declared... no
+checking whether vsnprintf is declared... yes
+checking for X11 configure files... 
+checking for X... disabled
+-------------------------------------------------------------
+checking for libzip >= 1.0.0... no
 
+-------------------------------------------------------------
+checking for zlib >= 1.0.0... yes
+
+-------------------------------------------------------------
+checking for libzstd >= 1.0.0... no
+
+-------------------------------------------------------------
+checking for FlashPIX... 
+checking fpxlib.h usability... no
+checking fpxlib.h presence... no
+checking for fpxlib.h... no
+checking for FPX_OpenImageByFilename in -lfpx... no
+checking if FlashPIX package is complete... no
+-------------------------------------------------------------
+checking for ddjvuapi >= 3.5.0... no
+
+-------------------------------------------------------------
+checking for fontconfig >= 2.1.0... no
+
+-------------------------------------------------------------
+checking for raqm... no
+
+checking for Windows GDI32 support... 
+checking windows.h usability... no
+checking windows.h presence... no
+checking for windows.h... no
+checking for winuser.h... no
+checking for wingdi.h... no
+checking if Windows GDI32 support is complete... no
+-------------------------------------------------------------
+checking for libgvc >= 2.9.0... no
+
+-------------------------------------------------------------
+checking for libheif >= 1.4.0... no
+
+-------------------------------------------------------------
+checking for libopenjp2 >= 2.1.0... yes
+
+-------------------------------------------------------------
+checking for lqr-1 >= 0.1.0... no
+
+-------------------------------------------------------------
+checking for OpenEXR >= 1.0.6... no
+
+-------------------------------------------------------------
+checking for pangocairo >= 1.28.1... no
+
+checking for pango >= 1.28.1... no
+
+-------------------------------------------------------------
+checking for libraw_r >= 0.14.8... no
+
+-------------------------------------------------------------
+checking for libwebp >= 0.4.1... no
+checking for libwebpmux >= 0.5.0 libwebpdemux >= 0.5.0... no
+
+checking if WMF package is complete... no
+checking for acosh... yes
+checking for _aligned_malloc... no
+checking for aligned_malloc... no
+checking for asinh... yes
+checking for atanh... yes
+checking for atoll... yes
+checking for atexit... yes
+checking for cabs... yes
+checking for carg... yes
+checking for cimag... yes
+checking for creal... yes
+checking for clock... yes
+checking for clock_getres... yes
+checking for clock_gettime... yes
+checking for ctime_r... yes
+checking for directio... no
+checking for erf... yes
+checking for _exit... yes
+checking for execvp... yes
+checking for fchmod... yes
+checking for floor... yes
+checking for fork... (cached) yes
+checking for ftime... yes
+checking for ftruncate... yes
+checking for getc_unlocked... yes
+checking for getcwd... yes
+checking for getentropy... yes
+checking for getexecname... no
+checking for getdtablesize... yes
+checking for getpagesize... (cached) yes
+checking for getpid... yes
+checking for getpwnam_r... yes
+checking for getrlimit... yes
+checking for getrusage... yes
+checking for gettimeofday... yes
+checking for gmtime_r... yes
+checking for isnan... yes
+checking for j0... yes
+checking for j1... yes
+checking for lltostr... no
+checking for localtime_r... yes
+checking for lstat... yes
+checking for memmove... yes
+checking for memset... yes
+checking for mkdir... yes
+checking for mkstemp... yes
+checking for munmap... yes
+checking for nanosleep... yes
+checking for newlocale... yes
+checking for _NSGetExecutablePath... no
+checking for pclose... yes
+checking for _pclose... no
+checking for poll... yes
+checking for popen... yes
+checking for _popen... no
+checking for posix_fadvise... yes
+checking for posix_fallocate... yes
+checking for posix_madvise... yes
+checking for posix_memalign... yes
+checking for posix_spawnp... yes
+checking for pow... yes
+checking for pread... yes
+checking for putenv... yes
+checking for pwrite... yes
+checking for qsort_r... yes
+checking for raise... yes
+checking for rand_r... yes
+checking for readlink... yes
+checking for realpath... yes
+checking for select... yes
+checking for seekdir... yes
+checking for sendfile... yes
+checking for setlocale... yes
+checking for socket... yes
+checking for sqrt... yes
+checking for setvbuf... yes
+checking for stat... yes
+checking for strcasestr... yes
+checking for strchr... yes
+checking for strrchr... yes
+checking for strcspn... yes
+checking for strdup... yes
+checking for strpbrk... yes
+checking for strspn... yes
+checking for strstr... yes
+checking for strtod... (cached) yes
+checking for strtod_l... yes
+checking for strtol... yes
+checking for strtoul... yes
+checking for symlink... yes
+checking for sysconf... yes
+checking for sigemptyset... yes
+checking for sigaction... yes
+checking for spawnvp... no
+checking for strerror... yes
+checking for strlcat... no
+checking for strlcpy... no
+checking for strcasecmp... yes
+checking for strncasecmp... yes
+checking for system... yes
+checking for telldir... yes
+checking for tempnam... yes
+checking for times... yes
+checking for ulltostr... no
+checking for uselocale... yes
+checking for usleep... yes
+checking for utime... yes
+checking for utimensat... yes
+checking for vfprintf... yes
+checking for vfprintf_l... no
+checking for vsprintf... yes
+checking for vsnprintf... yes
+checking for vsnprintf_l... no
+checking for waitpid... yes
+checking for _wfopen... no
+checking for _wstat... no
+-------------------------------------------------------------
+checking for ImageMagick delegate programs... 
+checking for bpgdec... bpgdec
+checking for bpgenc... bpgenc
+checking for blender... blender
+checking for xdg-open... no
+checking for google-chrome... no
+checking for firefox... no
+checking for konqueror... no
+checking for mozilla... no
+checking for lynx... no
+checking for ufraw-batch... ufraw-batch
+checking for libreoffice... libreoffice
+checking for dvips... dvips
+checking for magick... magick
+checking for magick... magick
+checking for xterm... xterm
+checking for dot... dot
+checking for hp2xx... hp2xx
+checking for html2ps... html2ps
+checking for ilbmtoppm... ilbmtoppm
+checking for ppmtoilbm... ppmtoilbm
+checking for JxrDecApp... JxrDecApp
+checking for JxrEncApp... JxrEncApp
+checking for lepton... lepton
+checking for lp... no
+checking for lpr... lpr
+checking for gimp... gimp
+checking for magick... magick
+checking for ffmpeg... ffmpeg
+checking for ffmpeg... ffmpeg
+checking for mrsidgeodecode... mrsidgeodecode
+checking for mv... /usr/bin/mv
+checking for pcl6... pcl6
+checking for gsx... no
+checking for gsc... no
+checking for gs... /usr/bin/gs
+checking for rm... /usr/bin/rm
+checking for rsvg-convert... rsvg-convert
+checking for inkscape... inkscape
+checking for tesseract... tesseract
+checking for potrace... potrace
+checking for fig2dev... fig2dev
+checking for dwebp... dwebp
+checking for cwebp... cwebp
+checking for curl... /usr/bin/curl
+checking for gxps... gxps
+checking for Apple fonts directory... not found!
+checking for Dejavu fonts directory... not found!
+checking for Ghostscript fonts directory... /usr/share/fonts/type1/gsfonts/
+checking for URW-base35 fonts directory... not found!
+checking for Windows fonts directory... not found!
+checking for gnutar... no
+checking for gtar... no
+checking for tar... tar
+checking for perl... perl
+checking for rpmbuild... no
+checking for rpm... no
+checking for 7za... no
+checking for zip... no
+-------------------------------------------------------------
+checking for Ghostscript... 
+checking for Ghostscript version... 9.50
+checking for gs color device... png16m
+checking for gs alpha device... pngalpha
+checking for gs CMYK device... pamcmyk32
+checking for gs mono device... pbmraw
+checking for gs PDF writing device... pdfwrite
+checking for gs PS writing device... ps2write
+checking for gs EPS writing device... eps2write
+-------------------------------------------------------------
+Update ImageMagick configuration
+checking that generated files are newer than configure... done
+checking that generated files are newer than configure... done
+configure: creating ./config.status
+config.status: creating common.shi
+config.status: creating config/configure.xml
+config.status: creating config/delegates.xml
+config.status: creating config/ImageMagick.rdf
+config.status: creating config/MagickCore.dox
+config.status: creating config/MagickWand.dox
+config.status: creating config/Magick++.dox
+config.status: creating config/type-apple.xml
+config.status: creating config/type-dejavu.xml
+config.status: creating config/type-ghostscript.xml
+config.status: creating config/type-urw-base35.xml
+config.status: creating config/type-windows.xml
+config.status: creating config/type.xml
+config.status: creating ImageMagick.spec
+config.status: creating Magick++/bin/Magick++-config
+config.status: creating MagickCore/ImageMagick.pc
+config.status: creating Magick++/lib/Magick++.pc
+config.status: creating MagickCore/MagickCore-config
+config.status: creating MagickCore/MagickCore.pc
+config.status: creating MagickCore/version.h
+config.status: creating Makefile
+config.status: creating magick.sh
+config.status: creating PerlMagick/check.sh
+config.status: creating PerlMagick/default/Magick.pm
+config.status: creating PerlMagick/Makefile.PL
+config.status: creating PerlMagick/default/Makefile.PL
+config.status: creating PerlMagick/quantum/Makefile.PL
+config.status: creating PerlMagick/quantum/quantum.pm
+config.status: creating PerlMagick/quantum/quantum.xs
+config.status: creating PerlMagick/quantum/typemap
+config.status: creating utilities/animate.1
+config.status: creating utilities/compare.1
+config.status: creating utilities/composite.1
+config.status: creating utilities/conjure.1
+config.status: creating utilities/convert.1
+config.status: creating utilities/display.1
+config.status: creating utilities/identify.1
+config.status: creating utilities/ImageMagick.1
+config.status: creating utilities/import.1
+config.status: creating utilities/magick.1
+config.status: creating utilities/magick-script.1
+config.status: creating utilities/mogrify.1
+config.status: creating utilities/montage.1
+config.status: creating utilities/stream.1
+config.status: creating MagickWand/MagickWand-config
+config.status: creating MagickWand/MagickWand.pc
+config.status: creating config/config.h
+config.status: executing MagickCore/magick-baseconfig.h commands
+config.status: creating MagickCore/magick-baseconfig.h - prefix MAGICKCORE for config/config.h defines
+config.status: executing depfiles commands
+config.status: executing libtool commands
+config.status: executing default commands
+config.status: executing magick.sh.in commands
+config.status: executing MagickCore-config.in commands
+config.status: executing MagickWand-config.in commands
+config.status: executing Magick++-config.in commands
+config.status: executing PerlMagick/check.sh.in commands
+configure:
+==============================================================================
+ImageMagick 7.1.0-32 is configured as follows. Please verify that this
+configuration matches your expectations.
+
+Host system type: x86_64-pc-linux-gnu
+Build system type: x86_64-pc-linux-gnu
+
+                  Option                        Value
+------------------------------------------------------------------------------
+Shared libraries  --enable-shared=yes		yes
+Static libraries  --enable-static=yes		yes
+Build utilities   --with-utilities=yes		yes
+Module support    --with-modules=no		no
+GNU ld            --with-gnu-ld=yes		yes
+Quantum depth     --with-quantum-depth=16	16
+High Dynamic Range Imagery
+                  --enable-hdri=yes		yes
+
+Install documentation:				yes
+
+Memory allocation library:
+  JEMalloc          --with-jemalloc=no		no
+  TCMalloc          --with-tcmalloc=no		no
+  UMem              --with-umem=no		no
+
+Delegate library configuration:
+  BZLIB             --with-bzlib=no		no
+  Autotrace         --with-autotrace=no		no
+  DJVU              --with-djvu=yes		no
+  DPS               --with-dps=no		no
+  FFTW              --with-fftw=no		no
+  FLIF              --with-flif=no		no
+  FlashPIX          --with-fpx=yes		no
+  FontConfig        --with-fontconfig=yes	no
+  FreeType          --with-freetype=no		no
+  Ghostscript lib   --with-gslib=no		no
+  Graphviz          --with-gvc=yes		no
+  HEIC              --with-heic=yes		no
+  JBIG              --with-jbig=no		no
+  JPEG v1           --with-jpeg=no		no
+  JPEG XL           --with-jxl=no		no
+  LCMS              --with-lcms=no		no
+  LQR               --with-lqr=yes		no
+  LTDL              --with-ltdl=no		no
+  LZMA              --with-lzma=no		no
+  Magick++          --with-magick-plus-plus=no	no
+  OpenEXR           --with-openexr=yes		no
+  OpenJP2           --with-openjp2=yes		yes
+  PANGO             --with-pango=yes		no
+  PERL              --with-perl=no		no
+  PNG               --with-png=no		no
+  RAQM              --with-raqm=yes		no
+  RAW               --with-raw=yes		no
+  RSVG              --with-rsvg=no		no
+  TIFF              --with-tiff=no		no
+  WEBP              --with-webp=yes		no
+  WMF               --with-wmf=no		no
+  X11               --with-x=no			no
+  XML               --with-xml=no		no
+  ZIP               --with-zip=yes		no
+  ZLIB              --with-zlib=yes		yes
+  ZSTD              --with-zstd=yes		no
+
+Delegate program configuration:
+  GhostPCL          None			pcl6 (unknown)
+  GhostXPS          None			gxps (unknown)
+  Ghostscript       None			gs (9.50)
+
+Font configuration:
+  Apple fonts       --with-apple-font-dir=default	
+  Dejavu fonts      --with-dejavu-font-dir=default	none
+  Ghostscript fonts --with-gs-font-dir=default		/usr/share/fonts/type1/gsfonts/
+  URW-base35 fonts  --with-urw-base35-font-dir=default	none
+  Windows fonts     --with-windows-font-dir=default	none
+
+X11 configuration:
+  X_CFLAGS        = 
+  X_PRE_LIBS      = 
+  X_LIBS          = 
+  X_EXTRA_LIBS    = 
+
+Options used to compile and link:
+  PREFIX          = /home/mihirs/nets/ImageMagick/build
+  EXEC-PREFIX     = /home/mihirs/nets/ImageMagick/build
+  VERSION         = 7.1.0-32
+  CC              = g++
+  CFLAGS          = -I/home/mihirs/nets/imagemagick-361s/openjpeg/src/lib/openjp2   -Wall -std=c++17 -mtune=core2 -fexceptions -pthread -DMAGICKCORE_HDRI_ENABLE=1 -DMAGICKCORE_QUANTUM_DEPTH=16
+  CPPFLAGS        = -I /home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/build/_deps/rlbox-src/code/include -DMAGICKCORE_HDRI_ENABLE=1 -DMAGICKCORE_QUANTUM_DEPTH=16
+  PCFLAGS         = 
+  DEFS            = -DHAVE_CONFIG_H
+  LDFLAGS         = 
+  LIBS            =                              -L/home/mihirs/nets/imagemagick-361s/openjpeg/src/lib/openjp2 -lopenjp2      -lz     -lm    -lpthread 
+  CXX             = g++
+  CXXFLAGS        =  -pthread
+  FEATURES        = DPC HDRI Cipher
+  DELEGATES       = openjp2 ps zlib
+==============================================================================
 

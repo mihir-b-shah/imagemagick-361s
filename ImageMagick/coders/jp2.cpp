@@ -36,6 +36,9 @@
 %
 */
 
+
+#define RLBOX_SINGLE_THREADED_INVOCATIONS
+
 /*
   Include declarations.
 */
@@ -71,7 +74,28 @@
 #include "MagickCore/string-private.h"
 #include "MagickCore/module.h"
 #if defined(MAGICKCORE_LIBOPENJP2_DELEGATE)
+
+#include <rlbox_wasm2c_sandbox.hpp>
+#include <rlbox.hpp>
 #include <openjpeg.h>
+
+using namespace rlbox;
+
+class jp2_sandbox {
+public:
+  jp2_sandbox() : sandbox() {
+    sandbox.create_sandbox("/home/mihirs/nets/imagemagick-361s/openjpeg/src/lib/openjp2/libopenjp2.so");
+  }
+  ~jp2_sandbox() {
+    sandbox.destroy_sandbox();
+  }
+  rlbox_sandbox<rlbox_wasm2c_sandbox>* sb(){ return &sandbox; }
+private:
+  rlbox_sandbox<rlbox_wasm2c_sandbox> sandbox;
+};
+
+jp2_sandbox* sandbox = nullptr;
+
 #endif
 
 /*
@@ -582,7 +606,10 @@ ModuleExport size_t RegisterJP2Image(void)
 
   *version='\0';
 #if defined(MAGICKCORE_LIBOPENJP2_DELEGATE)
-  (void) FormatLocaleString(version,MagickPathExtent,"%s",opj_version());
+
+  const char* vstr = opj_version();
+  //const char* vstr = sandbox->sb()->invoke_sandbox_function(opj_version).UNSAFE_unverified();
+  (void) FormatLocaleString(version,MagickPathExtent,"%s",vstr);
 #endif
   entry=AcquireMagickInfo("JP2","JP2","JPEG-2000 File Format Syntax");
   if (*version != '\0')

@@ -30959,11 +30959,10 @@ if test "$with_openjp2" != 'yes'; then
     DISTCHECK_CONFIG_FLAGS="${DISTCHECK_CONFIG_FLAGS} --with-openjp2=$with_openjp2 "
 fi
 
-#have_openjp2='no'
-have_openjp2='yes'
-#LIBOPENJP2_CFLAGS=""
-#LIBOPENJP2_LIBS=""
-#LIBOPENJP2_PKG=""
+have_openjp2='no'
+LIBOPENJP2_CFLAGS=""
+LIBOPENJP2_LIBS=""
+LIBOPENJP2_PKG=""
 if test "$with_openjp2" != 'no'; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: -------------------------------------------------------------" >&5
 $as_echo "-------------------------------------------------------------" >&6; }
@@ -31057,10 +31056,10 @@ else
   LIBOPENJP2_DELEGATE_FALSE=
 fi
 
-echo $LIBOPENJP2_DELEGATE_FALSE
-echo $LIBOPENJP2_DELEGATE_TRUE
-echo $LIBOPENJP2_LIBS
-echo $LIBOPENJP2_CFLAGS
+
+
+
+
 
 #
 # Check for the LQR (Liquid Rescale) delegate library.
