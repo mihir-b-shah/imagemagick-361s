@@ -87,24 +87,20 @@ using namespace rlbox;
 static void JP2ErrorHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
                             tainted<const char*, rlbox_wasm2c_sandbox> tainted_msg,
                             tainted<void*, rlbox_wasm2c_sandbox> tainted_cl_data);
-static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2ReadHandler(
-                                 rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
+static OPJ_SIZE_T JP2ReadHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
                                  tainted<void*, rlbox_wasm2c_sandbox> tainted_buf,
                                  tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> tainted_len,
                                  tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx);
-static tainted<OPJ_BOOL, rlbox_wasm2c_sandbox> JP2SeekHandler(
-                               rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
+static OPJ_BOOL JP2SeekHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
                                tainted<OPJ_OFF_T, rlbox_wasm2c_sandbox> tainted_offs,
                                tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx);
-static tainted<OPJ_OFF_T, rlbox_wasm2c_sandbox> JP2SkipHandler(
-                                rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
+static OPJ_OFF_T JP2SkipHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
                                 tainted<OPJ_OFF_T, rlbox_wasm2c_sandbox> tainted_offs,
                                 tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx);
 static void JP2WarningHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
                               tainted<const char*, rlbox_wasm2c_sandbox> tainted_msg,
                               tainted<void*, rlbox_wasm2c_sandbox> tainted_cl_data);
-static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2WriteHandler(
-                                  rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
+static OPJ_SIZE_T JP2WriteHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
                                   tainted<void*, rlbox_wasm2c_sandbox> tainted_buf,
                                   tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> tainted_len,
                                   tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx);
@@ -225,7 +221,6 @@ static MagickBooleanType IsJP2(const unsigned char *magick,const size_t length)
     return(MagickTrue);
   return(MagickFalse);
 }
-
 
 /*
 note, we have 3 copies of the img. Be careful about double frees, etc.
@@ -252,6 +247,7 @@ untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_img, opj_image_t
   sandbox->sb()->free_in_sandbox(tainted_img);
 }
 
+
 /*
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                                                             %
@@ -300,8 +296,7 @@ static void JP2ErrorHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
 }
 
 // TODO: should these return types be tainted?
-static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2ReadHandler(
-                                 rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
+static OPJ_SIZE_T JP2ReadHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
                                  tainted<void*, rlbox_wasm2c_sandbox> tainted_buf,
                                  tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> tainted_len,
                                  tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx)
@@ -323,8 +318,7 @@ static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2ReadHandler(
   return((OPJ_SIZE_T) count);
 }
 
-static tainted<OPJ_BOOL, rlbox_wasm2c_sandbox> JP2SeekHandler(
-                               rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
+static OPJ_BOOL JP2SeekHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
                                tainted<OPJ_OFF_T, rlbox_wasm2c_sandbox> tainted_offs,
                                tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx)
 {
@@ -338,8 +332,7 @@ static tainted<OPJ_BOOL, rlbox_wasm2c_sandbox> JP2SeekHandler(
   return(SeekBlob(image,offset,SEEK_SET) < 0 ? OPJ_FALSE : OPJ_TRUE);
 }
 
-static tainted<OPJ_OFF_T, rlbox_wasm2c_sandbox> JP2SkipHandler(
-                                rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
+static OPJ_OFF_T JP2SkipHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
                                 tainted<OPJ_OFF_T, rlbox_wasm2c_sandbox> tainted_offs,
                                 tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx)
 {
@@ -368,8 +361,7 @@ static void JP2WarningHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
     message,"`%s'","OpenJP2");
 }
 
-static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2WriteHandler(
-                                  rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
+static OPJ_SIZE_T JP2WriteHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
                                   tainted<void*, rlbox_wasm2c_sandbox> tainted_buf,
                                   tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> tainted_len,
                                   tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx)
@@ -566,7 +558,7 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
   }
   
   tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image;
-  jp2_image = (opj_image_t*) malloc(sizeof(opj_image_t));
+  jp2_image = malloc(sizeof(opj_image_t));
   memcpy(jp2_image, *(tainted_jp2_image_ptr.UNSAFE_unverified()), sizeof(opj_image_t));
 
   jp2_status=OPJ_TRUE;
@@ -1459,7 +1451,7 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
   tainted<opj_codec_t*, rlbox_wasm2c_sandbox> tainted_codec;
   if (LocaleCompare(image_info->magick,"JPT") == 0) {
     tainted_codec = sandbox->sb()->invoke_sandbox_function(opj_create_compress, OPJ_CODEC_JPT);
-  } else if (LocaleCompare(image_info->magick, "J2K") == 0) {
+  } else if (IsJ2K(sans,4) != MagickFalse) {
     tainted_codec = sandbox->sb()->invoke_sandbox_function(opj_create_compress, OPJ_CODEC_J2K);
   } else {
     tainted_codec = sandbox->sb()->invoke_sandbox_function(opj_create_compress, OPJ_CODEC_JP2);
@@ -1472,53 +1464,41 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
   sandbox->sb()->invoke_sandbox_function(opj_set_warning_handler, tainted_codec, sandbox->warn_cb, tainted_excp);
   sandbox->sb()->invoke_sandbox_function(opj_set_warning_handler, tainted_codec, sandbox->error_cb, tainted_excp);
 
-  tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image = sandbox->sb()->malloc_in_sandbox<opj_image_t>(sizeof(opj_image_t));
-  memcpy(tainted_jp2_image.unverified_safe_pointer_because(sizeof(opj_image_t),
+  tainted<opj_image_t*> tainted_img = sandbox->sb()->malloc_in_sandbox<opj_dparameters_t>(sizeof(opj_dparameters_t));
+  memcpy(tainted_img.unverified_safe_pointer_because(sizeof(opj_image_t),
     "Memcpying to the image object"), jp2_image, sizeof(opj_image));
 
-  sandbox->sb()->invoke_sandbox_function(opj_setup_encoder, tainted_codec, tainted_params, tainted_jp2_image);
+  sandbox->sb()->invoke_sandbox_function(opj_setup_encoder, tainted_codec, tainted_params, tainted_img);
 
-  tainted<opj_stream_t*, rlbox_wasm2c_sandbox> tainted_stream = sandbox->sb()->invoke_sandbox_function(opj_stream_create, OPJ_J2K_STREAM_CHUNK_SIZE, OPJ_FALSE);
-  jp2_stream = tainted_stream.UNSAFE_unverified();
-
+  jp2_stream=opj_stream_create(OPJ_J2K_STREAM_CHUNK_SIZE,OPJ_FALSE);
   if (jp2_stream == (opj_stream_t *) NULL)
-  {
-    sandbox->sb()->invoke_sandbox_function(opj_destroy_codec, tainted_codec);
-    sandbox->sb()->invoke_sandbox_function(opj_image_destroy, tainted_jp2_image);
-    parameters=(opj_cparameters_t *) RelinquishMagickMemory(parameters);
-    ThrowWriterException(DelegateError,"UnableToEncodeImageFile");
-  }
-  
-  sandbox->sb()->invoke_sandbox_function(opj_stream_set_read_function, tainted_stream, sandbox->read_cb);
-  sandbox->sb()->invoke_sandbox_function(opj_stream_set_write_function, tainted_stream, sandbox->write_cb);
-  sandbox->sb()->invoke_sandbox_function(opj_stream_set_seek_function, tainted_stream, sandbox->seek_cb);
-  sandbox->sb()->invoke_sandbox_function(opj_stream_set_skip_function, tainted_stream, sandbox->skip_cb);
-
-  tainted<opj_stream_free_user_data_fn, rlbox_wasm2c_sandbox> tainted_free_func = NULL;
-  tainted<Image*, rlbox_wasm2c_sandbox> tainted_image = sandbox->sb()->malloc_in_sandbox<Image>(sizeof(Image));
-  memcpy(tainted_image.unverified_safe_pointer_because(sizeof(Image),
-    "Memcpying to the Image img object"), image, sizeof(Image));
-  sandbox->sb()->invoke_sandbox_function(opj_stream_set_user_data, tainted_stream, tainted_image, tainted_free_func);
-
-  jp2_status = sandbox->sb()->invoke_sandbox_function(opj_start_compress, tainted_codec, tainted_jp2_image, tainted_stream).UNSAFE_unverified();
-  if ((jp2_status == 0) || 
-      (sandbox->sb()->invoke_sandbox_function(
-        opj_encode, tainted_codec, tainted_stream).UNSAFE_unverified() == 0) ||
-      (sandbox->sb()->invoke_sandbox_function(
-        opj_end_compress, tainted_codec, tainted_stream).UNSAFE_unverified() == 0))
     {
-      sandbox->sb()->invoke_sandbox_function(opj_stream_destroy, tainted_stream);
-      sandbox->sb()->invoke_sandbox_function(opj_destroy_codec, tainted_codec);
-      sandbox->sb()->invoke_sandbox_function(opj_image_destroy, tainted_jp2_image);
+      opj_destroy_codec(jp2_codec);
+      opj_image_destroy(jp2_image);
+      parameters=(opj_cparameters_t *) RelinquishMagickMemory(parameters);
+      ThrowWriterException(DelegateError,"UnableToEncodeImageFile");
+    }
+  opj_stream_set_read_function(jp2_stream,JP2ReadHandler);
+  opj_stream_set_write_function(jp2_stream,JP2WriteHandler);
+  opj_stream_set_seek_function(jp2_stream,JP2SeekHandler);
+  opj_stream_set_skip_function(jp2_stream,JP2SkipHandler);
+  opj_stream_set_user_data(jp2_stream,image,NULL);
+  jp2_status=opj_start_compress(jp2_codec,jp2_image,jp2_stream);
+  if ((jp2_status == 0) || (opj_encode(jp2_codec,jp2_stream) == 0) ||
+      (opj_end_compress(jp2_codec,jp2_stream) == 0))
+    {
+      opj_stream_destroy(jp2_stream);
+      opj_destroy_codec(jp2_codec);
+      opj_image_destroy(jp2_image);
       parameters=(opj_cparameters_t *) RelinquishMagickMemory(parameters);
       ThrowWriterException(DelegateError,"UnableToEncodeImageFile");
     }
   /*
     Free resources.
   */
-  sandbox->sb()->invoke_sandbox_function(opj_stream_destroy, tainted_stream);
-  sandbox->sb()->invoke_sandbox_function(opj_destroy_codec, tainted_codec);
-  sandbox->sb()->invoke_sandbox_function(opj_image_destroy, tainted_jp2_image);
+  opj_stream_destroy(jp2_stream);
+  opj_destroy_codec(jp2_codec);
+  opj_image_destroy(jp2_image);
   parameters=(opj_cparameters_t *) RelinquishMagickMemory(parameters);
   (void) CloseBlob(image);
   return(MagickTrue);

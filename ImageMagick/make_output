@@ -2,12 +2,15 @@ make  all-am
 make[1]: Entering directory '/home/mihirs/nets/imagemagick-361s/ImageMagick'
   CC       coders/MagickCore_libMagickCore_7_Q16HDRI_la-jp2.lo
 coders/jp2.cpp: In function ‘Image* ReadJP2Image(const ImageInfo*, ExceptionInfo*)’:
-coders/jp2.cpp:382:6: warning: variable ‘jp2_stream’ set but not used [-Wunused-but-set-variable]
-  382 |     *jp2_stream;
+coders/jp2.cpp:416:6: warning: variable ‘jp2_codec’ set but not used [-Wunused-but-set-variable]
+  416 |     *jp2_codec;
+      |      ^~~~~~~~~
+coders/jp2.cpp:425:6: warning: variable ‘jp2_stream’ set but not used [-Wunused-but-set-variable]
+  425 |     *jp2_stream;
       |      ^~~~~~~~~~
 coders/jp2.cpp: In function ‘MagickBooleanType WriteJP2Image(const ImageInfo*, Image*, ExceptionInfo*)’:
-coders/jp2.cpp:1234:17: warning: ‘opj_image_comptparm::bpp’ is deprecated: Use prec instead [-Wdeprecated-declarations]
- 1234 |     jp2_info[i].bpp=(OPJ_UINT32) image->depth;
+coders/jp2.cpp:1346:17: warning: ‘opj_image_comptparm::bpp’ is deprecated: Use prec instead [-Wdeprecated-declarations]
+ 1346 |     jp2_info[i].bpp=(OPJ_UINT32) image->depth;
       |                 ^~~
 In file included from coders/jp2.cpp:81:
 /home/mihirs/nets/imagemagick-361s/openjpeg/src/lib/openjp2/openjpeg.h:750:45: note: declared here
@@ -16,8 +19,8 @@ In file included from coders/jp2.cpp:81:
 /home/mihirs/nets/imagemagick-361s/openjpeg/src/lib/openjp2/openjpeg.h:80:83: note: in definition of macro ‘OPJ_DEPRECATED_STRUCT_MEMBER’
    80 | #define OPJ_DEPRECATED_STRUCT_MEMBER(memb, msg) __attribute__ ((deprecated(msg))) memb
       |                                                                                   ^~~~
-coders/jp2.cpp:1234:17: warning: ‘opj_image_comptparm::bpp’ is deprecated: Use prec instead [-Wdeprecated-declarations]
- 1234 |     jp2_info[i].bpp=(OPJ_UINT32) image->depth;
+coders/jp2.cpp:1346:17: warning: ‘opj_image_comptparm::bpp’ is deprecated: Use prec instead [-Wdeprecated-declarations]
+ 1346 |     jp2_info[i].bpp=(OPJ_UINT32) image->depth;
       |                 ^~~
 In file included from coders/jp2.cpp:81:
 /home/mihirs/nets/imagemagick-361s/openjpeg/src/lib/openjp2/openjpeg.h:750:45: note: declared here
@@ -26,8 +29,8 @@ In file included from coders/jp2.cpp:81:
 /home/mihirs/nets/imagemagick-361s/openjpeg/src/lib/openjp2/openjpeg.h:80:83: note: in definition of macro ‘OPJ_DEPRECATED_STRUCT_MEMBER’
    80 | #define OPJ_DEPRECATED_STRUCT_MEMBER(memb, msg) __attribute__ ((deprecated(msg))) memb
       |                                                                                   ^~~~
-coders/jp2.cpp:1234:17: warning: ‘opj_image_comptparm::bpp’ is deprecated: Use prec instead [-Wdeprecated-declarations]
- 1234 |     jp2_info[i].bpp=(OPJ_UINT32) image->depth;
+coders/jp2.cpp:1346:17: warning: ‘opj_image_comptparm::bpp’ is deprecated: Use prec instead [-Wdeprecated-declarations]
+ 1346 |     jp2_info[i].bpp=(OPJ_UINT32) image->depth;
       |                 ^~~
 In file included from coders/jp2.cpp:81:
 /home/mihirs/nets/imagemagick-361s/openjpeg/src/lib/openjp2/openjpeg.h:750:45: note: declared here
@@ -36,8 +39,8 @@ In file included from coders/jp2.cpp:81:
 /home/mihirs/nets/imagemagick-361s/openjpeg/src/lib/openjp2/openjpeg.h:80:83: note: in definition of macro ‘OPJ_DEPRECATED_STRUCT_MEMBER’
    80 | #define OPJ_DEPRECATED_STRUCT_MEMBER(memb, msg) __attribute__ ((deprecated(msg))) memb
       |                                                                                   ^~~~
-coders/jp2.cpp:1240:21: warning: ‘opj_image_comptparm::bpp’ is deprecated: Use prec instead [-Wdeprecated-declarations]
- 1240 |         jp2_info[i].bpp++;
+coders/jp2.cpp:1352:21: warning: ‘opj_image_comptparm::bpp’ is deprecated: Use prec instead [-Wdeprecated-declarations]
+ 1352 |         jp2_info[i].bpp++;
       |                     ^~~
 In file included from coders/jp2.cpp:81:
 /home/mihirs/nets/imagemagick-361s/openjpeg/src/lib/openjp2/openjpeg.h:750:45: note: declared here
@@ -46,8 +49,8 @@ In file included from coders/jp2.cpp:81:
 /home/mihirs/nets/imagemagick-361s/openjpeg/src/lib/openjp2/openjpeg.h:80:83: note: in definition of macro ‘OPJ_DEPRECATED_STRUCT_MEMBER’
    80 | #define OPJ_DEPRECATED_STRUCT_MEMBER(memb, msg) __attribute__ ((deprecated(msg))) memb
       |                                                                                   ^~~~
-coders/jp2.cpp:1240:21: warning: ‘opj_image_comptparm::bpp’ is deprecated: Use prec instead [-Wdeprecated-declarations]
- 1240 |         jp2_info[i].bpp++;
+coders/jp2.cpp:1352:21: warning: ‘opj_image_comptparm::bpp’ is deprecated: Use prec instead [-Wdeprecated-declarations]
+ 1352 |         jp2_info[i].bpp++;
       |                     ^~~
 In file included from coders/jp2.cpp:81:
 /home/mihirs/nets/imagemagick-361s/openjpeg/src/lib/openjp2/openjpeg.h:750:45: note: declared here
@@ -56,8 +59,8 @@ In file included from coders/jp2.cpp:81:
 /home/mihirs/nets/imagemagick-361s/openjpeg/src/lib/openjp2/openjpeg.h:80:83: note: in definition of macro ‘OPJ_DEPRECATED_STRUCT_MEMBER’
    80 | #define OPJ_DEPRECATED_STRUCT_MEMBER(memb, msg) __attribute__ ((deprecated(msg))) memb
       |                                                                                   ^~~~
-coders/jp2.cpp:1240:21: warning: ‘opj_image_comptparm::bpp’ is deprecated: Use prec instead [-Wdeprecated-declarations]
- 1240 |         jp2_info[i].bpp++;
+coders/jp2.cpp:1352:21: warning: ‘opj_image_comptparm::bpp’ is deprecated: Use prec instead [-Wdeprecated-declarations]
+ 1352 |         jp2_info[i].bpp++;
       |                     ^~~
 In file included from coders/jp2.cpp:81:
 /home/mihirs/nets/imagemagick-361s/openjpeg/src/lib/openjp2/openjpeg.h:750:45: note: declared here
@@ -66,128 +69,10 @@ In file included from coders/jp2.cpp:81:
 /home/mihirs/nets/imagemagick-361s/openjpeg/src/lib/openjp2/openjpeg.h:80:83: note: in definition of macro ‘OPJ_DEPRECATED_STRUCT_MEMBER’
    80 | #define OPJ_DEPRECATED_STRUCT_MEMBER(memb, msg) __attribute__ ((deprecated(msg))) memb
       |                                                                                   ^~~~
-coders/jp2.cpp:1377:43: error: invalid conversion from ‘OPJ_SIZE_T (*)(rlbox::rlbox_sandbox<rlbox::rlbox_wasm2c_sandbox>&, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<long unsigned int, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>)’ {aka ‘long unsigned int (*)(rlbox::rlbox_sandbox<rlbox::rlbox_wasm2c_sandbox>&, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<long unsigned int, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>)’} to ‘opj_stream_read_fn’ {aka ‘long unsigned int (*)(void*, long unsigned int, void*)’} [-fpermissive]
- 1377 |   opj_stream_set_read_function(jp2_stream,JP2ReadHandler);
-      |                                           ^~~~~~~~~~~~~~
-      |                                           |
-      |                                           OPJ_SIZE_T (*)(rlbox::rlbox_sandbox<rlbox::rlbox_wasm2c_sandbox>&, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<long unsigned int, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>) {aka long unsigned int (*)(rlbox::rlbox_sandbox<rlbox::rlbox_wasm2c_sandbox>&, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<long unsigned int, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>)}
-In file included from coders/jp2.cpp:81:
-/home/mihirs/nets/imagemagick-361s/openjpeg/src/lib/openjp2/openjpeg.h:1202:28: note:   initializing argument 2 of ‘void opj_stream_set_read_function(void**, opj_stream_read_fn)’
- 1202 |         opj_stream_read_fn p_function);
-      |         ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
-coders/jp2.cpp:1378:44: error: invalid conversion from ‘OPJ_SIZE_T (*)(rlbox::rlbox_sandbox<rlbox::rlbox_wasm2c_sandbox>&, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<long unsigned int, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>)’ {aka ‘long unsigned int (*)(rlbox::rlbox_sandbox<rlbox::rlbox_wasm2c_sandbox>&, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<long unsigned int, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>)’} to ‘opj_stream_write_fn’ {aka ‘long unsigned int (*)(void*, long unsigned int, void*)’} [-fpermissive]
- 1378 |   opj_stream_set_write_function(jp2_stream,JP2WriteHandler);
-      |                                            ^~~~~~~~~~~~~~~
-      |                                            |
-      |                                            OPJ_SIZE_T (*)(rlbox::rlbox_sandbox<rlbox::rlbox_wasm2c_sandbox>&, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<long unsigned int, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>) {aka long unsigned int (*)(rlbox::rlbox_sandbox<rlbox::rlbox_wasm2c_sandbox>&, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<long unsigned int, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>)}
-In file included from coders/jp2.cpp:81:
-/home/mihirs/nets/imagemagick-361s/openjpeg/src/lib/openjp2/openjpeg.h:1210:29: note:   initializing argument 2 of ‘void opj_stream_set_write_function(void**, opj_stream_write_fn)’
- 1210 |         opj_stream_write_fn p_function);
-      |         ~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
-coders/jp2.cpp:1379:43: error: invalid conversion from ‘OPJ_BOOL (*)(rlbox::rlbox_sandbox<rlbox::rlbox_wasm2c_sandbox>&, rlbox::tainted<long int, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>)’ {aka ‘int (*)(rlbox::rlbox_sandbox<rlbox::rlbox_wasm2c_sandbox>&, rlbox::tainted<long int, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>)’} to ‘opj_stream_seek_fn’ {aka ‘int (*)(long int, void*)’} [-fpermissive]
- 1379 |   opj_stream_set_seek_function(jp2_stream,JP2SeekHandler);
-      |                                           ^~~~~~~~~~~~~~
-      |                                           |
-      |                                           OPJ_BOOL (*)(rlbox::rlbox_sandbox<rlbox::rlbox_wasm2c_sandbox>&, rlbox::tainted<long int, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>) {aka int (*)(rlbox::rlbox_sandbox<rlbox::rlbox_wasm2c_sandbox>&, rlbox::tainted<long int, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>)}
-In file included from coders/jp2.cpp:81:
-/home/mihirs/nets/imagemagick-361s/openjpeg/src/lib/openjp2/openjpeg.h:1227:28: note:   initializing argument 2 of ‘void opj_stream_set_seek_function(void**, opj_stream_seek_fn)’
- 1227 |         opj_stream_seek_fn p_function);
-      |         ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
-coders/jp2.cpp:1380:43: error: invalid conversion from ‘OPJ_OFF_T (*)(rlbox::rlbox_sandbox<rlbox::rlbox_wasm2c_sandbox>&, rlbox::tainted<long int, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>)’ {aka ‘long int (*)(rlbox::rlbox_sandbox<rlbox::rlbox_wasm2c_sandbox>&, rlbox::tainted<long int, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>)’} to ‘opj_stream_skip_fn’ {aka ‘long int (*)(long int, void*)’} [-fpermissive]
- 1380 |   opj_stream_set_skip_function(jp2_stream,JP2SkipHandler);
-      |                                           ^~~~~~~~~~~~~~
-      |                                           |
-      |                                           OPJ_OFF_T (*)(rlbox::rlbox_sandbox<rlbox::rlbox_wasm2c_sandbox>&, rlbox::tainted<long int, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>) {aka long int (*)(rlbox::rlbox_sandbox<rlbox::rlbox_wasm2c_sandbox>&, rlbox::tainted<long int, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>)}
-In file included from coders/jp2.cpp:81:
-/home/mihirs/nets/imagemagick-361s/openjpeg/src/lib/openjp2/openjpeg.h:1218:28: note:   initializing argument 2 of ‘void opj_stream_set_skip_function(void**, opj_stream_skip_fn)’
- 1218 |         opj_stream_skip_fn p_function);
-      |         ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
-In file included from /home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/include/rlbox_wasm2c_sandbox.hpp:6,
-                 from coders/jp2.cpp:78:
-/home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/build/_deps/rlbox-src/code/include/rlbox_sandbox.hpp: In instantiation of ‘rlbox::sandbox_callback<typename rlbox::detail::detail_rlbox_remove_wrapper::unwrapper<T_Ret>::type (*)(rlbox::detail::rlbox_remove_wrapper_t<T_Args>...), T_Sbx> rlbox::rlbox_sandbox<T_Sbx>::register_callback(T_Ret (*)(T_RL, T_Args ...)) [with T_RL = rlbox::rlbox_sandbox<rlbox::rlbox_wasm2c_sandbox>&; T_Ret = long unsigned int; T_Args = {rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<long unsigned int, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>}; T_Sbx = rlbox::rlbox_wasm2c_sandbox; typename rlbox::detail::detail_rlbox_remove_wrapper::unwrapper<T_Ret>::type = long unsigned int]’:
-coders/jp2.cpp:116:55:   required from here
-/home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/build/_deps/rlbox-src/code/include/rlbox_helpers.hpp:47:19: error: static assertion failed: Change the callback return type to be tainted or tainted_opaque if it is not void. For instance if a callback has type
-
-int foo(int a, int b) {...}
-
-Change this to 
-
-tainted<int, T_Sbx> foo(rlbox_sandbox<T_Sbx>& sandbox, tainted<int, T_Sbx> a, tainted<int, T_Sbx> b) {...}
-
-   47 |     static_assert(!(CondExpr), Message)
-      |                   ^~~~~~~~~~~
-/home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/build/_deps/rlbox-src/code/include/rlbox_sandbox.hpp:897:7: note: in expansion of macro ‘rlbox_detail_static_fail_because’
-  897 |       rlbox_detail_static_fail_because(
-      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In file included from /home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/build/_deps/rlbox-src/code/include/rlbox.hpp:14,
-                 from coders/jp2.cpp:79:
-/home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/build/_deps/rlbox-src/code/include/rlbox_sandbox.hpp:954:3: warning: no return statement in function returning non-void [-Wreturn-type]
-  954 |   }
-      |   ^
-In file included from /home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/include/rlbox_wasm2c_sandbox.hpp:6,
-                 from coders/jp2.cpp:78:
-/home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/build/_deps/rlbox-src/code/include/rlbox_sandbox.hpp: In instantiation of ‘rlbox::sandbox_callback<typename rlbox::detail::detail_rlbox_remove_wrapper::unwrapper<T_Ret>::type (*)(rlbox::detail::rlbox_remove_wrapper_t<T_Args>...), T_Sbx> rlbox::rlbox_sandbox<T_Sbx>::register_callback(T_Ret (*)(T_RL, T_Args ...)) [with T_RL = rlbox::rlbox_sandbox<rlbox::rlbox_wasm2c_sandbox>&; T_Ret = int; T_Args = {rlbox::tainted<long int, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>}; T_Sbx = rlbox::rlbox_wasm2c_sandbox; typename rlbox::detail::detail_rlbox_remove_wrapper::unwrapper<T_Ret>::type = int]’:
-coders/jp2.cpp:117:55:   required from here
-/home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/build/_deps/rlbox-src/code/include/rlbox_helpers.hpp:47:19: error: static assertion failed: Change the callback return type to be tainted or tainted_opaque if it is not void. For instance if a callback has type
-
-int foo(int a, int b) {...}
-
-Change this to 
-
-tainted<int, T_Sbx> foo(rlbox_sandbox<T_Sbx>& sandbox, tainted<int, T_Sbx> a, tainted<int, T_Sbx> b) {...}
-
-   47 |     static_assert(!(CondExpr), Message)
-      |                   ^~~~~~~~~~~
-/home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/build/_deps/rlbox-src/code/include/rlbox_sandbox.hpp:897:7: note: in expansion of macro ‘rlbox_detail_static_fail_because’
-  897 |       rlbox_detail_static_fail_because(
-      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In file included from /home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/build/_deps/rlbox-src/code/include/rlbox.hpp:14,
-                 from coders/jp2.cpp:79:
-/home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/build/_deps/rlbox-src/code/include/rlbox_sandbox.hpp:954:3: warning: no return statement in function returning non-void [-Wreturn-type]
-  954 |   }
-      |   ^
-In file included from /home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/include/rlbox_wasm2c_sandbox.hpp:6,
-                 from coders/jp2.cpp:78:
-/home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/build/_deps/rlbox-src/code/include/rlbox_sandbox.hpp: In instantiation of ‘rlbox::sandbox_callback<typename rlbox::detail::detail_rlbox_remove_wrapper::unwrapper<T_Ret>::type (*)(rlbox::detail::rlbox_remove_wrapper_t<T_Args>...), T_Sbx> rlbox::rlbox_sandbox<T_Sbx>::register_callback(T_Ret (*)(T_RL, T_Args ...)) [with T_RL = rlbox::rlbox_sandbox<rlbox::rlbox_wasm2c_sandbox>&; T_Ret = long int; T_Args = {rlbox::tainted<long int, rlbox::rlbox_wasm2c_sandbox>, rlbox::tainted<void*, rlbox::rlbox_wasm2c_sandbox>}; T_Sbx = rlbox::rlbox_wasm2c_sandbox; typename rlbox::detail::detail_rlbox_remove_wrapper::unwrapper<T_Ret>::type = long int]’:
-coders/jp2.cpp:118:55:   required from here
-/home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/build/_deps/rlbox-src/code/include/rlbox_helpers.hpp:47:19: error: static assertion failed: Change the callback return type to be tainted or tainted_opaque if it is not void. For instance if a callback has type
-
-int foo(int a, int b) {...}
-
-Change this to 
-
-tainted<int, T_Sbx> foo(rlbox_sandbox<T_Sbx>& sandbox, tainted<int, T_Sbx> a, tainted<int, T_Sbx> b) {...}
-
-   47 |     static_assert(!(CondExpr), Message)
-      |                   ^~~~~~~~~~~
-/home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/build/_deps/rlbox-src/code/include/rlbox_sandbox.hpp:897:7: note: in expansion of macro ‘rlbox_detail_static_fail_because’
-  897 |       rlbox_detail_static_fail_because(
-      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In file included from /home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/build/_deps/rlbox-src/code/include/rlbox.hpp:14,
-                 from coders/jp2.cpp:79:
-/home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/build/_deps/rlbox-src/code/include/rlbox_sandbox.hpp:954:3: warning: no return statement in function returning non-void [-Wreturn-type]
-  954 |   }
-      |   ^
-In file included from /home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/include/rlbox_wasm2c_sandbox.hpp:6,
-                 from coders/jp2.cpp:78:
-/home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/build/_deps/rlbox-src/code/include/rlbox.hpp: In instantiation of ‘rlbox::tainted<T, T_Sbx>::tainted(T2) [with T2 = opj_image*; std::enable_if_t<is_pointer_v<T2> >* <anonymous> = 0; T = opj_image*; T_Sbx = rlbox::rlbox_wasm2c_sandbox]’:
-coders/jp2.cpp:524:112:   required from here
-/home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/build/_deps/rlbox-src/code/include/rlbox_helpers.hpp:47:19: error: static assertion failed: Assignment of pointers is not safe as it could
- 1) Leak pointers from the appliction to the sandbox which may break ASLR
- 2) Pass inaccessible pointers to the sandbox leading to crash
- 3) Break sandboxes that require pointers to be swizzled first
- 
- Instead, if you want to pass in a pointer, do one of the following
- 1) Allocate with malloc_in_sandbox, and pass in a tainted pointer
- 2) For pointers that point to functions in the application, register with sandbox.register_callback("foo"), and pass in the registered value
- 3) For pointers that point to functions in the sandbox, get the address with get_sandbox_function_address(sandbox, foo), and pass in the address
- 4) For raw pointers, use assign_raw_pointer which performs required safety checks
- 
-   47 |     static_assert(!(CondExpr), Message)
-      |                   ^~~~~~~~~~~
-/home/mihirs/nets/imagemagick-361s/rlbox_wasm2c_sandbox/build/_deps/rlbox-src/code/include/rlbox.hpp:982:5: note: in expansion of macro ‘rlbox_detail_static_fail_because’
-  982 |     rlbox_detail_static_fail_because(
-      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-make[1]: *** [Makefile:10200: coders/MagickCore_libMagickCore_7_Q16HDRI_la-jp2.lo] Error 1
+coders/jp2.cpp:1160:6: warning: unused variable ‘jp2_codec’ [-Wunused-variable]
+ 1160 |     *jp2_codec;
+      |      ^~~~~~~~~
+  CCLD     MagickCore/libMagickCore-7.Q16HDRI.la
+  CCLD     MagickWand/libMagickWand-7.Q16HDRI.la
+  CCLD     utilities/magick
 make[1]: Leaving directory '/home/mihirs/nets/imagemagick-361s/ImageMagick'
-make: *** [Makefile:6162: all] Error 2
