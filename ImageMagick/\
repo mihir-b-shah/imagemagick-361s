@@ -82,23 +82,6 @@
 
 using namespace rlbox;
 
-// reflection stuff allowing us to use fields in rlbox.
-#define sandbox_fields_reflection_openjp2_class_opj_image_t(f, g, ...) \
-  f(OPJ_UINT32        , x0              , FIELD_NORMAL, ##__VA_ARGS__) g() \
-  f(OPJ_UINT32        , y0              , FIELD_NORMAL, ##__VA_ARGS__) g() \
-  f(OPJ_UINT32        , x1              , FIELD_NORMAL, ##__VA_ARGS__) g() \
-  f(OPJ_UINT32        , y1              , FIELD_NORMAL, ##__VA_ARGS__) g() \
-  f(OPJ_UINT32        , numcomps        , FIELD_NORMAL, ##__VA_ARGS__) g() \
-  f(OPJ_COLOR_SPACE   , color_space     , FIELD_NORMAL, ##__VA_ARGS__) g() \
-  f(opj_image_comp_t* , comps           , FIELD_NORMAL, ##__VA_ARGS__) g() \
-  f(OPJ_BYTE*         , icc_profile_buf , FIELD_NORMAL, ##__VA_ARGS__) g() \
-  f(OPJ_UINT32        , icc_profile_len , FIELD_NORMAL, ##__VA_ARGS__) g()
-
-#define sandbox_fields_reflection_openjp2_allClasses(f, ...) \
-  f(opj_image_t     , openjp2, ##__VA_ARGS__) 
-    
-rlbox_load_structs_from_library(openjp2);
-
 #if defined(MAGICKCORE_LIBOPENJP2_DELEGATE)
 /* forward declarations */
 static void JP2ErrorHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
@@ -257,61 +240,27 @@ static tainted<opj_image_t*, rlbox_wasm2c_sandbox>
 taint_img(opj_image_t* raw_img)
 {
   tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image = sandbox->sb()->malloc_in_sandbox<opj_image_t>();
+  tainted<opj_image_comp_t*, rlbox_wasm2c_sandbox> tainted_comps = sandbox->sb()->malloc_in_sandbox<opj_image_comp_t>(raw_img->numcomps);
+  tainted<OPJ_BYTE*, rlbox_wasm2c_sandbox> tainted_icc_buf = sandbox->sb()->malloc_in_sandbox<OPJ_BYTE>(raw_img->icc_profile_len);
+
   memcpy(tainted_jp2_image.unverified_safe_pointer_because(sizeof(opj_image_t), "Copying jp2_image over"), raw_img, sizeof(opj_image_t));
+  memcpy(tainted_comps.unverified_safe_pointer_because(sizeof(opj_image_comp_t)*raw_img->numcomps, "Copying comps over"), raw_img->comps, sizeof(opj_image_comp_t)*(raw_img->numcomps));
+  memcpy(tainted_icc_buf.unverified_safe_pointer_because(sizeof(OPJ_BYTE)*raw_img->icc_profile_len, "Copying icc profile over"), raw_img->icc_profile_buf, sizeof(OPJ_BYTE)*(raw_img->icc_profile_len));
 
-  if (raw_img->comps != NULL) {
-    tainted<opj_image_comp_t*, rlbox_wasm2c_sandbox> tainted_comps = sandbox->sb()->malloc_in_sandbox<opj_image_comp_t>(raw_img->numcomps);
-    memcpy(tainted_comps.unverified_safe_pointer_because(sizeof(opj_image_comp_t)*raw_img->numcomps, "Copying comps over"), raw_img->comps, sizeof(opj_image_comp_t)*(raw_img->numcomps));
-    tainted_jp2_image->comps = tainted_comps;
-  }
-
-  if (raw_img->icc_profile_buf != NULL) {
-    tainted<OPJ_BYTE*, rlbox_wasm2c_sandbox> tainted_icc_buf = sandbox->sb()->malloc_in_sandbox<OPJ_BYTE>(raw_img->icc_profile_len);
-    memcpy(tainted_icc_buf.unverified_safe_pointer_because(sizeof(OPJ_BYTE)*raw_img->icc_profile_len, "Copying icc profile over"), raw_img->icc_profile_buf, sizeof(OPJ_BYTE)*(raw_img->icc_profile_len));
-    tainted_jp2_image->icc_profile_buf = tainted_icc_buf;
-  }
+  /*
+  tainted_jp2_image->comps = tainted_comps;
+  tainted_jp2_image->icc_profile_buf = tainted_icc_buf;
+  */
 
   return tainted_jp2_image;
 }
 
-static opj_image_t*
-untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image, opj_image_t* raw_img)
+static void
+untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_img, opj_image_t* raw_img)
 {
-  bool new_img = false;
-  if (!raw_img) {
-    raw_img = (opj_image_t*) malloc(sizeof(opj_image_t));
-    new_img = true;
-  }
-
-  memcpy(raw_img, tainted_jp2_image.unverified_safe_pointer_because(sizeof(opj_image_t), "Copying jp2_image over"), sizeof(opj_image_t));
-
-  if (new_img) {
-    tainted<opj_image_comp_t*, rlbox_wasm2c_sandbox> tcomps = (*tainted_jp2_image).comps;
-    tainted<OPJ_BYTE*, rlbox_wasm2c_sandbox> ticc = tainted_jp2_image->icc_profile_buf;
-
-    printf("tcomps: %p\n", tcomps.UNSAFE_unverified());
-
-    raw_img->comps = (opj_image_comp_t*) (tainted_jp2_image->comps.UNSAFE_unverified() != NULL ? malloc(sizeof(opj_image_comp_t)*(tainted_jp2_image->numcomps.UNSAFE_unverified())) : NULL);
-    raw_img->icc_profile_buf = (OPJ_BYTE*) (tainted_jp2_image->icc_profile_buf.UNSAFE_unverified() != NULL ? malloc(sizeof(OPJ_BYTE)*(tainted_jp2_image->icc_profile_len.UNSAFE_unverified())) : NULL);
-    printf("comps: %p, icc_profile_buf: %p\n", raw_img->comps, raw_img->icc_profile_buf);
-  }
-
-  printf("Line %d\n", __LINE__);
-  if (tainted_jp2_image->comps.UNSAFE_unverified() != NULL) {
-    memcpy(raw_img->comps, tainted_jp2_image->comps.UNSAFE_unverified(), sizeof(opj_image_comp_t)*(tainted_jp2_image->numcomps.UNSAFE_unverified()));
-    // SEGFAULTING: sandbox->sb()->free_in_sandbox(tainted_jp2_image->comps);
-  }
-
-  printf("Line %d\n", __LINE__);
-  if (tainted_jp2_image->icc_profile_buf.UNSAFE_unverified() != NULL) {
-    memcpy(raw_img->icc_profile_buf, tainted_jp2_image->icc_profile_buf.UNSAFE_unverified(), sizeof(OPJ_BYTE)*(tainted_jp2_image->icc_profile_len.UNSAFE_unverified()));
-    printf("Line %d\n", __LINE__);
-    // SEGFAULTING: sandbox->sb()->free_in_sandbox(tainted_jp2_image->icc_profile_buf);
-  }
-
-  printf("Line %d\n", __LINE__);
-  // SEGFAULTING: sandbox->sb()->free_in_sandbox(tainted_jp2_image);
-  return raw_img;
+  opj_image_t* untainted_img = tainted_img.UNSAFE_unverified();
+  memcpy(raw_img, untainted_img, sizeof(opj_image_t));
+  sandbox->sb()->free_in_sandbox(tainted_img);
 }
 
 /*
@@ -627,9 +576,13 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
     ThrowReaderException(DelegateError,"UnableToDecodeImageFile");
   }
 
-  tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image;
   tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_ptr = *tainted_jp2_image_ptr;
-  jp2_image = untaint_img(tainted_jp2_ptr, NULL);
+  opj_image_t* raw_jp2_ptr = tainted_jp2_ptr.UNSAFE_unverified();
+  printf("%p\n", raw_jp2_ptr);
+
+  tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image;
+  jp2_image = (opj_image_t*) malloc(sizeof(opj_image_t));
+  memcpy(jp2_image, raw_jp2_ptr, sizeof(opj_image_t));
 
   jp2_status=OPJ_TRUE;
     

@@ -1,0 +1,50 @@
+Binary file ./j2k.o matches
+Binary file ./mihir.wasm matches
+./libWasmJP2.c:FUNC_EXPORT u32 w2c_opj_read_header(wasm2c_sandbox_t* const, u32, u32, u32);
+./libWasmJP2.c:FUNC_EXPORT u32 w2centry_w2c_opj_read_header(wasm2c_sandbox_t* const sbx, u32 p0, u32 p1, u32 p2) {
+./libWasmJP2.c:  u32 ret = w2c_opj_read_header(sbx, p0, p1, p2);
+./libWasmJP2.c:FUNC_EXPORT u32 w2c_opj_read_header(wasm2c_sandbox_t* const sbx, u32 w2c_p0, u32 w2c_p1, u32 w2c_p2) {
+./libWasmJP2.c:  i32_store(&(sbx->w2c_memory), (u64)(w2c_i0) + 24, w2c_i1, "w2c_opj_read_header");
+./libWasmJP2.c:  i32_store(&(sbx->w2c_memory), (u64)(w2c_i0) + 20, w2c_i1, "w2c_opj_read_header");
+./libWasmJP2.c:  i32_store(&(sbx->w2c_memory), (u64)(w2c_i0) + 16, w2c_i1, "w2c_opj_read_header");
+./libWasmJP2.c:  w2c_i0 = i32_load(&(sbx->w2c_memory), (u64)(w2c_i0) + 20u, "w2c_opj_read_header");
+./libWasmJP2.c:  w2c_i0 = i32_load(&(sbx->w2c_memory), (u64)(w2c_i0) + 24u, "w2c_opj_read_header");
+./libWasmJP2.c:  w2c_i0 = i32_load(&(sbx->w2c_memory), (u64)(w2c_i0) + 20u, "w2c_opj_read_header");
+./libWasmJP2.c:  i32_store(&(sbx->w2c_memory), (u64)(w2c_i0) + 12, w2c_i1, "w2c_opj_read_header");
+./libWasmJP2.c:  w2c_i0 = i32_load(&(sbx->w2c_memory), (u64)(w2c_i0) + 24u, "w2c_opj_read_header");
+./libWasmJP2.c:  i32_store(&(sbx->w2c_memory), (u64)(w2c_i0) + 8, w2c_i1, "w2c_opj_read_header");
+./libWasmJP2.c:  w2c_i0 = i32_load(&(sbx->w2c_memory), (u64)(w2c_i0) + 12u, "w2c_opj_read_header");
+./libWasmJP2.c:  w2c_i0 = i32_load(&(sbx->w2c_memory), (u64)(w2c_i0) + 76u, "w2c_opj_read_header");
+./libWasmJP2.c:  w2c_i0 = i32_load(&(sbx->w2c_memory), (u64)(w2c_i0) + 12u, "w2c_opj_read_header");
+./libWasmJP2.c:  i32_store(&(sbx->w2c_memory), (u64)(w2c_i0) + 28, w2c_i1, "w2c_opj_read_header");
+./libWasmJP2.c:  w2c_i0 = i32_load(&(sbx->w2c_memory), (u64)(w2c_i0) + 12u, "w2c_opj_read_header");
+./libWasmJP2.c:  w2c_i0 = i32_load(&(sbx->w2c_memory), (u64)(w2c_i0), "w2c_opj_read_header");
+./libWasmJP2.c:  w2c_i0 = i32_load(&(sbx->w2c_memory), (u64)(w2c_i0) + 8u, "w2c_opj_read_header");
+./libWasmJP2.c:  w2c_i0 = i32_load(&(sbx->w2c_memory), (u64)(w2c_i0) + 12u, "w2c_opj_read_header");
+./libWasmJP2.c:  w2c_i0 = i32_load(&(sbx->w2c_memory), (u64)(w2c_i0) + 48u, "w2c_opj_read_header");
+./libWasmJP2.c:  w2c_i0 = i32_load(&(sbx->w2c_memory), (u64)(w2c_i0) + 16u, "w2c_opj_read_header");
+./libWasmJP2.c:  w2c_i0 = i32_load(&(sbx->w2c_memory), (u64)(w2c_i0) + 12u, "w2c_opj_read_header");
+./libWasmJP2.c:  i32_store(&(sbx->w2c_memory), (u64)(w2c_i0) + 28, w2c_i1, "w2c_opj_read_header");
+./libWasmJP2.c:  i32_store(&(sbx->w2c_memory), (u64)(w2c_i0) + 28, w2c_i1, "w2c_opj_read_header");
+./libWasmJP2.c:  w2c_i0 = i32_load(&(sbx->w2c_memory), (u64)(w2c_i0) + 28u, "w2c_opj_read_header");
+./j2k.c:                      "opj_read_header() should be called before "
+./j2k.c:    /* Heuristics to detect sequence opj_read_header(), opj_set_decoded_resolution_factor() */
+./j2k.c:    /* opj_read_header(), modify x0,y0,x1,y1 of returned image an call opj_decode_image() */
+./opj_codec.h:            OPJ_BOOL(*opj_read_header)(struct opj_stream_private * cio,
+./j2k.h: * Sets the given area to be decoded. This function should be called right after opj_read_header and before any tile header reading.
+./openjpeg.c:        l_codec->m_codec_data.m_decompression.opj_read_header =
+./openjpeg.c:        l_codec->m_codec_data.m_decompression.opj_read_header =
+./openjpeg.c:OPJ_BOOL OPJ_CALLCONV opj_read_header(opj_stream_t *p_stream,
+./openjpeg.c:                          "Codec provided to the opj_read_header function is not a decompressor handler.\n");
+./openjpeg.c:        return l_codec->m_codec_data.m_decompression.opj_read_header(l_stream,
+./libWasmJP2.h:FUNC_EXPORT u32 w2c_opj_read_header(wasm2c_sandbox_t* const, u32, u32, u32);
+./jp2.h: * Sets the given area to be decoded. This function should be called right after opj_read_header and before any tile header reading.
+Binary file ./openjpeg.o matches
+./openjpeg.h: * before opj_read_header() for the decoding side, or after opj_setup_encoder()
+./openjpeg.h:OPJ_API OPJ_BOOL OPJ_CALLCONV opj_read_header(opj_stream_t *p_stream,
+./openjpeg.h: * This function should be called after opj_read_header().
+./openjpeg.h: * Sets the given area to be decoded. This function should be called right after opj_read_header and before any tile header reading.
+./openjpeg.h: * @param   p_image         the decoded image previously set by opj_read_header
+./openjpeg.h: * The user may need to refer to the image got by opj_read_header to understand the size being taken by the tile.
+./openjpeg.h: * The user may need to refer to the image got by opj_read_header to understand the size being taken by the tile.
+Binary file ./libopenjp2.so matches
