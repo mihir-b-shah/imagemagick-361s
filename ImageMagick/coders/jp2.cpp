@@ -236,8 +236,7 @@ invoke_in_sandbox(fn_name, tainted_jp2_image);
 copy back to jp2_image
 free tainted_jp2_image
 */
-static tainted<opj_image_t*, rlbox_wasm2c_sandbox>
-taint_img(opj_image_t* raw_img)
+static tainted<opj_image_t*, rlbox_wasm2c_sandbox> taint_img(opj_image_t* raw_img)
 {
   tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image = sandbox->sb()->malloc_in_sandbox<opj_image_t>(sizeof(opj_image_t));
   memcpy(tainted_jp2_image.unverified_safe_pointer_because(sizeof(opj_image_t), "Copying jp2_image over"), raw_img, sizeof(opj_image_t));
@@ -247,7 +246,26 @@ taint_img(opj_image_t* raw_img)
 static void
 untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_img, opj_image_t* raw_img)
 {
-  opj_image_t* untainted_img = tainted_img.UNSAFE_unverified();
+  opj_image_t* untainted_img = tainted_img.copy_and_verify(
+    [] (opj_image_t *img) {
+      if (
+        (img->color_space < -1 || 5 < img->color_space)
+        (!is_in_same_sandbox(img, img->icc_profile_buf))
+      ) {
+        printf("ERROR: INVALID opj_image_t CAUGHT\n");
+        exit(EXIT_FAILURE);
+      }
+
+      for (int i = 0; i < img->numcomps; i++) {
+        if (
+          (!is_in_same_sandbox(img, img->comps + i))
+        ) {
+          printf("ERROR: INVALID opj_image_t CAUGHT\n");
+          exit(EXIT_FAILURE);
+        }
+      }
+    }
+  );
   memcpy(raw_img, untainted_img, sizeof(opj_image_t));
   sandbox->sb()->free_in_sandbox(tainted_img);
 }
@@ -564,13 +582,13 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
     jp2_codec = tainted_codec.UNSAFE_unverified();
     ThrowReaderException(DelegateError,"UnableToDecodeImageFile");
   }
-  
+
   tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image;
   jp2_image = (opj_image_t*) malloc(sizeof(opj_image_t));
   memcpy(jp2_image, *(tainted_jp2_image_ptr.UNSAFE_unverified()), sizeof(opj_image_t));
 
   jp2_status=OPJ_TRUE;
-    
+
   if ((AcquireMagickResource(WidthResource,(size_t) jp2_image->comps[0].w) == MagickFalse) ||
       (AcquireMagickResource(HeightResource,(size_t) jp2_image->comps[0].h) == MagickFalse))
   {
