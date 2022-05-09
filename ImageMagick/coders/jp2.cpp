@@ -75,10 +75,11 @@
 #include "MagickCore/module.h"
 #if defined(MAGICKCORE_LIBOPENJP2_DELEGATE)
 
+#include <openjpeg.h>
+#include <memory>
 #include <rlbox_wasm2c_sandbox.hpp>
 #include <rlbox.hpp>
 #include <type_traits>
-#include <openjpeg.h>
 
 using namespace rlbox;
 
@@ -275,6 +276,27 @@ taint_img(opj_image_t* raw_img)
   return tainted_jp2_image;
 }
 
+static opj_image_t* verify_image(opj_image_t* img)
+{
+  if (
+    (img->color_space < -1 || 5 < img->color_space) ||
+    (!sandbox->sb()->is_in_same_sandbox(img, img->icc_profile_buf))
+  ) {
+    printf("ERROR: INVALID opj_image_t CAUGHT\n");
+    exit(EXIT_FAILURE);
+  }
+
+  for (int i = 0; i < img->numcomps; i++) {
+    if (
+      (!sandbox->sb()->is_in_same_sandbox(img, img->comps + i))
+    ) {
+      printf("ERROR: INVALID opj_image_t CAUGHT\n");
+      exit(EXIT_FAILURE);
+    }
+  }
+  return img;
+}
+
 static opj_image_t*
 untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image, opj_image_t* raw_img)
 {
@@ -284,27 +306,20 @@ untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image, opj_i
     new_img = true;
   }
 
-  opj_image_t* untainted_img = tainted_jp2_image.copy_and_verify(
-    [] (opj_image_t *img) {
-      if (
-        (img->color_space < -1 || 5 < img->color_space)
-        (!is_in_same_sandbox(img, img->icc_profile_buf))
-      ) {
-        printf("ERROR: INVALID opj_image_t CAUGHT\n");
-        exit(EXIT_FAILURE);
-      }
+  /*
+  tainted<int*, rlbox_wasm2c_sandbox> pa = sandbox->sb()->malloc_in_sandbox<int>();
+  auto result1 = pa.copy_and_verify([&](std::unique_ptr<int> val) {
+    return std::move(val);
+  }); 
 
-      for (int i = 0; i < img->numcomps; i++) {
-        if (
-          (!is_in_same_sandbox(img, img->comps + i))
-        ) {
-          printf("ERROR: INVALID opj_image_t CAUGHT\n");
-          exit(EXIT_FAILURE);
-        }
-      }
-    }
-  )
+  auto result2 = tainted_jp2_image.copy_and_verify([&](std::unique_ptr<opj_image_t> val) {
+    return std::move(val);
+  });
+  */
 
+  opj_image_t* untainted_img = tainted_jp2_image.UNSAFE_unverified();
+  // fine in a single-threaded context.
+  untainted_img = verify_image(untainted_img);
   memcpy(raw_img, untainted_img, sizeof(opj_image_t));
 
   if (new_img) {
@@ -1289,6 +1304,24 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
     "Memcpying to the params object"), parameters, sizeof(opj_cparameters_t));
   sandbox->sb()->invoke_sandbox_function(opj_set_default_encoder_parameters, tainted_params); 
 
+  // again, fine in a single threaded context.
+  opj_cparameters_t* raw_tainted_params = tainted_params.UNSAFE_unverified();
+  raw_tainted_params = [](opj_cparameters_t* params){
+    bool fine = params->numpocs < 32 &&
+                params->tcp_numlayers < 100 &&
+                  (params->prog_order == OPJ_PROG_UNKNOWN || params->prog_order == OPJ_LRCP ||
+                   params->prog_order == OPJ_RLCP || params->prog_order == OPJ_RPCL ||
+                   params->prog_order == OPJ_PCRL || params->prog_order == OPJ_CPRL) &&
+                params->max_comp_size >= 0 &&
+                params->max_cs_size >= 0;
+    if (!fine) {
+      printf("ERROR: INVALID opj_cparameters_t CAUGHT\n");
+      exit(EXIT_FAILURE);
+    }
+    return params;
+  }(raw_tainted_params);
+  memcpy(parameters, raw_tainted_params, sizeof(opj_cparameters_t));
+
   option=GetImageOption(image_info,"jp2:number-resolutions");
   if (option != (const char *) NULL)
     parameters->numresolution=StringToInteger(option);
@@ -1440,7 +1473,11 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
   memcpy(tainted_info.unverified_safe_pointer_because(sizeof(jp2_info), "Memcpying to the info object"), 
     &jp2_info, sizeof(jp2_info));
 
+  // TODO: need to use untaint and taint img here.
   jp2_image = sandbox->sb()->invoke_sandbox_function(opj_image_create, (OPJ_UINT32) channels, tainted_info, jp2_colorspace).UNSAFE_unverified();
+
+  // again, safe only in a single-threaded case.
+  jp2_image = verify_image(jp2_image);
 
   if (jp2_image == (opj_image_t *) NULL)
     {
@@ -1552,8 +1589,9 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
 
   tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image = sandbox->sb()->malloc_in_sandbox<opj_image_t>();
   memcpy(tainted_jp2_image.unverified_safe_pointer_because(sizeof(opj_image_t),
-    "Memcpying to the image object"), jp2_image, sizeof(opj_image));
+    "Memcpying to the image object"), jp2_image, sizeof(opj_image_t));
 
+  memcpy(tainted_params.unverified_safe_pointer_because(sizeof(opj_cparameters_t), "Updating the tainted_params, since no further changes."), parameters, sizeof(opj_cparameters_t));
   sandbox->sb()->invoke_sandbox_function(opj_setup_encoder, tainted_codec, tainted_params, tainted_jp2_image);
 
   tainted<opj_stream_t*, rlbox_wasm2c_sandbox> tainted_stream = sandbox->sb()->invoke_sandbox_function(opj_stream_create, OPJ_J2K_STREAM_CHUNK_SIZE, OPJ_FALSE);
