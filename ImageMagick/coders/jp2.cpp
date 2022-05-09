@@ -284,7 +284,28 @@ untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image, opj_i
     new_img = true;
   }
 
-  memcpy(raw_img, tainted_jp2_image.unverified_safe_pointer_because(sizeof(opj_image_t), "Copying jp2_image over"), sizeof(opj_image_t));
+  opj_image_t* untainted_img = tainted_jp2_image.copy_and_verify(
+    [] (opj_image_t *img) {
+      if (
+        (img->color_space < -1 || 5 < img->color_space)
+        (!is_in_same_sandbox(img, img->icc_profile_buf))
+      ) {
+        printf("ERROR: INVALID opj_image_t CAUGHT\n");
+        exit(EXIT_FAILURE);
+      }
+
+      for (int i = 0; i < img->numcomps; i++) {
+        if (
+          (!is_in_same_sandbox(img, img->comps + i))
+        ) {
+          printf("ERROR: INVALID opj_image_t CAUGHT\n");
+          exit(EXIT_FAILURE);
+        }
+      }
+    }
+  )
+
+  memcpy(raw_img, untainted_img, sizeof(opj_image_t));
 
   if (new_img) {
     tainted<opj_image_comp_t*, rlbox_wasm2c_sandbox> tcomps = (*tainted_jp2_image).comps;
