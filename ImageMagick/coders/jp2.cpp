@@ -276,8 +276,7 @@ taint_img(opj_image_t* raw_img)
   return tainted_jp2_image;
 }
 
-static opj_image_t* verify_image(opj_image_t* img)
-{
+static opj_image_t* jp2_image__verifier (opj_image_t* img) {
   if (
     (img->color_space < -1 || 5 < img->color_space) ||
     (!sandbox->sb()->is_in_same_sandbox(img, img->icc_profile_buf))
@@ -294,6 +293,7 @@ static opj_image_t* verify_image(opj_image_t* img)
       exit(EXIT_FAILURE);
     }
   }
+
   return img;
 }
 
@@ -319,7 +319,7 @@ untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image, opj_i
 
   opj_image_t* untainted_img = tainted_jp2_image.UNSAFE_unverified();
   // fine in a single-threaded context.
-  untainted_img = verify_image(untainted_img);
+  untainted_img = jp2_image__verifier(untainted_img);
   memcpy(raw_img, untainted_img, sizeof(opj_image_t));
 
   if (new_img) {
@@ -375,6 +375,39 @@ untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image, opj_i
 %    o exception: return any errors or warnings in this structure.
 %
 */
+
+#define MAXIMUM_ERROR_MESSAGE_LENGTH 300
+static const char* error_message__verifier (const char* message) {
+  if (strlen(message) > MAXIMUM_ERROR_MESSAGE_LENGTH) {
+    printf("ERROR: INVALID error_message CAUGHT\n");
+    exit(EXIT_FAILURE);
+  }
+
+  return message;
+}
+
+#define MAXIMUM_EXCEPTION_REASON_LENGTH 300
+#define MAXIMUM_EXCEPTION_DESCRIPTION_LENGTH 300
+static void* client_data__verifier (void* client_data) {
+  ExceptionInfo *exception = (ExceptionInfo *) client_data;
+
+  if (
+    !(0 <= exception->severity && exception->severity <= 799) ||
+    !(sandbox->sb()->is_in_same_sandbox(client_data, exception->reason)) ||
+    (strlen(exception->reason) > MAXIMUM_EXCEPTION_REASON_LENGTH) ||
+    !(sandbox->sb()->is_in_same_sandbox(client_data, exception->description)) ||
+    (strlen(exception->description) > MAXIMUM_EXCEPTION_DESCRIPTION_LENGTH) ||
+    !(sandbox->sb()->is_in_same_sandbox(client_data, exception->exceptions)) ||
+    !(sandbox->sb()->is_in_same_sandbox(client_data, exception->semaphore)) ||
+    !(exception->signature == MagickCoreSignature || exception->signature == (~MagickCoreSignature))
+  ) {
+    printf("ERROR: INVALID client_data CAUGHT\n");
+    exit(EXIT_FAILURE);
+  }
+
+  return client_data;
+}
+
 #if defined(MAGICKCORE_LIBOPENJP2_DELEGATE)
 // TODO: should this be static?
 static void JP2ErrorHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
@@ -382,7 +415,10 @@ static void JP2ErrorHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
                             tainted<void*, rlbox_wasm2c_sandbox> tainted_cl_data)
 {
   const char* message = tainted_msg.UNSAFE_unverified();
+  message = error_message__verifier(message);
+
   void* client_data = tainted_cl_data.UNSAFE_unverified();
+  client_data = client_data__verifier(client_data);
 
   ExceptionInfo
     *exception;
@@ -1236,6 +1272,21 @@ static inline int CalculateNumResolutions(size_t width,size_t height)
   return(i);
 }
 
+static opj_cparameters_t* jp2_cparameters__verifier(opj_cparameters_t* params){
+  bool fine = params->numpocs < 32 &&
+              params->tcp_numlayers < 100 &&
+                (params->prog_order == OPJ_PROG_UNKNOWN || params->prog_order == OPJ_LRCP ||
+                 params->prog_order == OPJ_RLCP || params->prog_order == OPJ_RPCL ||
+                 params->prog_order == OPJ_PCRL || params->prog_order == OPJ_CPRL) &&
+              params->max_comp_size >= 0 &&
+              params->max_cs_size >= 0;
+  if (!fine) {
+    printf("ERROR: INVALID opj_cparameters_t CAUGHT\n");
+    exit(EXIT_FAILURE);
+  }
+  return params;
+}
+
 static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
   ExceptionInfo *exception)
 {
@@ -1306,20 +1357,7 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
 
   // again, fine in a single threaded context.
   opj_cparameters_t* raw_tainted_params = tainted_params.UNSAFE_unverified();
-  raw_tainted_params = [](opj_cparameters_t* params){
-    bool fine = params->numpocs < 32 &&
-                params->tcp_numlayers < 100 &&
-                  (params->prog_order == OPJ_PROG_UNKNOWN || params->prog_order == OPJ_LRCP ||
-                   params->prog_order == OPJ_RLCP || params->prog_order == OPJ_RPCL ||
-                   params->prog_order == OPJ_PCRL || params->prog_order == OPJ_CPRL) &&
-                params->max_comp_size >= 0 &&
-                params->max_cs_size >= 0;
-    if (!fine) {
-      printf("ERROR: INVALID opj_cparameters_t CAUGHT\n");
-      exit(EXIT_FAILURE);
-    }
-    return params;
-  }(raw_tainted_params);
+  raw_tainted_params = jp2_cparameters__verifier(raw_tainted_params);
   memcpy(parameters, raw_tainted_params, sizeof(opj_cparameters_t));
 
   option=GetImageOption(image_info,"jp2:number-resolutions");
@@ -1477,7 +1515,7 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
   jp2_image = sandbox->sb()->invoke_sandbox_function(opj_image_create, (OPJ_UINT32) channels, tainted_info, jp2_colorspace).UNSAFE_unverified();
 
   // again, safe only in a single-threaded case.
-  jp2_image = verify_image(jp2_image);
+  jp2_image = jp2_image__verifier(jp2_image);
 
   if (jp2_image == (opj_image_t *) NULL)
     {
