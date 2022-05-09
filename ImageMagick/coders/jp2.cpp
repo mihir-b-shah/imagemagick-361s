@@ -243,29 +243,38 @@ static tainted<opj_image_t*, rlbox_wasm2c_sandbox> taint_img(opj_image_t* raw_im
   return tainted_jp2_image;
 }
 
-static void
-untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_img, opj_image_t* raw_img)
-{
-  opj_image_t* untainted_img = tainted_img.copy_and_verify(
-    [] (opj_image_t *img) {
-      if (
-        (img->color_space < -1 || 5 < img->color_space)
-        (!is_in_same_sandbox(img, img->icc_profile_buf))
-      ) {
-        printf("ERROR: INVALID opj_image_t CAUGHT\n");
-        exit(EXIT_FAILURE);
-      }
+static opj_image_t *jp2_image__verifier = [] (unique_ptr<opj_image_t> img) {
+  if (
+    (img->color_space < -1 || 5 < img->color_space)
+    (!is_in_same_sandbox(img, img->icc_profile_buf))
+  ) {
+    printf("ERROR: INVALID opj_image_t CAUGHT\n");
+    exit(EXIT_FAILURE);
+  }
 
-      for (int i = 0; i < img->numcomps; i++) {
-        if (
-          (!is_in_same_sandbox(img, img->comps + i))
-        ) {
-          printf("ERROR: INVALID opj_image_t CAUGHT\n");
-          exit(EXIT_FAILURE);
-        }
-      }
+  for (int i = 0; i < img->numcomps; i++) {
+    if (
+      (!is_in_same_sandbox(img, img->comps + i))
+    ) {
+      printf("ERROR: INVALID opj_image_t CAUGHT\n");
+      exit(EXIT_FAILURE);
     }
-  );
+  }
+
+  return img;
+}
+
+static opj_image_t*
+untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image, opj_image_t* raw_img)
+{
+  bool new_img = false;
+  if (!raw_img) {
+    raw_img = (opj_image_t*) malloc(sizeof(opj_image_t));
+    new_img = true;
+  }
+
+  opj_image_t* untainted_img = tainted_jp2_image.copy_and_verify(jp2_image__verifier);
+
   memcpy(raw_img, untainted_img, sizeof(opj_image_t));
   sandbox->sb()->free_in_sandbox(tainted_img);
 }
@@ -301,13 +310,46 @@ untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_img, opj_image_t
 %
 */
 #if defined(MAGICKCORE_LIBOPENJP2_DELEGATE)
+
+#define MAXIMUM_ERROR_MESSAGE_LENGTH 300
+static const char *error_message__verifier = [] (unique_ptr<const char> message) {
+  if (strlen(message > MAXIMUM_ERROR_MESSAGE_LENGTH)) {
+    printf("ERROR: INVALID error_message CAUGHT\n");
+    exit(EXIT_FAILURE);
+  }
+
+  return message;
+}
+
+#define MAXIMUM_EXCEPTION_REASON_LENGTH 300
+#define MAXIMUM_EXCPETION_DESCRIPTION_LENGTH 300
+static void *client_data__verifier = [] (unique_ptr<void> client_data) {
+  ExceptionInfo *exception = (ExceptionInfo *) client_data;
+
+  if (
+    !(0 <= exception->severity && exception->severity <= 799) ||
+    !(sandbox->sb()->is_in_same_sandbox(client_data, reason)) ||
+    (exception->reason > MAXIMUM_EXCEPTION_REASON_LENGTH) ||
+    !(sandbox->sb()->is_in_same_sandbox(client_data, description)) ||
+    (exception->description > MAXIMUM_EXCEPTION_DESCRIPTION_LENGTH)
+    !(sandbox->sb()->is_in_same_sandbox(client_data, exceptions)) ||
+    !(sandbox->sb()->is_in_same_sandbox(client_data, semaphore))
+    !(signature == MagickCoreSignature || signature == (~MagickCoreSignature))
+  ) {
+    printf("ERROR: INVALID client_data CAUGHT\n");
+    exit(EXIT_FAILURE);
+  }
+
+  return client_data;
+}
+
 // TODO: should this be static?
 static void JP2ErrorHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
                             tainted<const char*, rlbox_wasm2c_sandbox> tainted_msg,
                             tainted<void*, rlbox_wasm2c_sandbox> tainted_cl_data)
 {
-  const char* message = tainted_msg.UNSAFE_unverified();
-  void* client_data = tainted_cl_data.UNSAFE_unverified();
+  const char* message = tainted_msg.copy_and_verify(error_message__verifier);
+  void* client_data = tainted_cl_data.copy_and_verify(client_data__verifier);
 
   ExceptionInfo
     *exception;
@@ -316,6 +358,8 @@ static void JP2ErrorHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
   (void) ThrowMagickException(exception,GetMagickModule(),CoderError,
     message,"`%s'","OpenJP2");
 }
+
+
 
 // TODO: should these return types be tainted?
 static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2ReadHandler(
@@ -1227,7 +1271,8 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
   tainted<opj_cparameters_t*, rlbox_wasm2c_sandbox> tainted_params = sandbox->sb()->malloc_in_sandbox<opj_cparameters_t>(sizeof(opj_cparameters_t));
   memcpy(tainted_params.unverified_safe_pointer_because(sizeof(opj_cparameters_t),
     "Memcpying to the params object"), parameters, sizeof(opj_cparameters_t));
-  sandbox->sb()->invoke_sandbox_function(opj_set_default_encoder_parameters, tainted_params); 
+  sandbox->sb()->invoke_sandbox_function(opj_set_default_encoder_parameters, tainted_params);
+  parameters = tainted_params.UNSAFE_unverified();
 
   option=GetImageOption(image_info,"jp2:number-resolutions");
   if (option != (const char *) NULL)
@@ -1488,7 +1533,7 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
     "Memcpying to the exception object"), exception, sizeof(ExceptionInfo));
   
   sandbox->sb()->invoke_sandbox_function(opj_set_warning_handler, tainted_codec, sandbox->warn_cb, tainted_excp);
-  sandbox->sb()->invoke_sandbox_function(opj_set_warning_handler, tainted_codec, sandbox->error_cb, tainted_excp);
+  sandbox->sb()->invoke_sandbox_function(opj_set_error_handler, tainted_codec, sandbox->error_cb, tainted_excp);
 
   tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image = sandbox->sb()->malloc_in_sandbox<opj_image_t>(sizeof(opj_image_t));
   memcpy(tainted_jp2_image.unverified_safe_pointer_because(sizeof(opj_image_t),
