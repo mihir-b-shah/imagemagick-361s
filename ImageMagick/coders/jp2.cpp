@@ -271,6 +271,7 @@ taint_img(opj_image_t* raw_img)
     tainted_jp2_image->icc_profile_buf = tainted_icc_buf;
   }
 
+  printf("Finished tainting.\n");
   return tainted_jp2_image;
 }
 
@@ -289,28 +290,22 @@ untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image, opj_i
     tainted<opj_image_comp_t*, rlbox_wasm2c_sandbox> tcomps = (*tainted_jp2_image).comps;
     tainted<OPJ_BYTE*, rlbox_wasm2c_sandbox> ticc = tainted_jp2_image->icc_profile_buf;
 
-    printf("tcomps: %p\n", tcomps.UNSAFE_unverified());
-
     raw_img->comps = (opj_image_comp_t*) (tainted_jp2_image->comps.UNSAFE_unverified() != NULL ? malloc(sizeof(opj_image_comp_t)*(tainted_jp2_image->numcomps.UNSAFE_unverified())) : NULL);
     raw_img->icc_profile_buf = (OPJ_BYTE*) (tainted_jp2_image->icc_profile_buf.UNSAFE_unverified() != NULL ? malloc(sizeof(OPJ_BYTE)*(tainted_jp2_image->icc_profile_len.UNSAFE_unverified())) : NULL);
-    printf("comps: %p, icc_profile_buf: %p\n", raw_img->comps, raw_img->icc_profile_buf);
   }
 
-  printf("Line %d\n", __LINE__);
   if (tainted_jp2_image->comps.UNSAFE_unverified() != NULL) {
     memcpy(raw_img->comps, tainted_jp2_image->comps.UNSAFE_unverified(), sizeof(opj_image_comp_t)*(tainted_jp2_image->numcomps.UNSAFE_unverified()));
-    // SEGFAULTING: sandbox->sb()->free_in_sandbox(tainted_jp2_image->comps);
+    sandbox->sb()->free_in_sandbox(tainted_jp2_image->comps);
   }
 
-  printf("Line %d\n", __LINE__);
   if (tainted_jp2_image->icc_profile_buf.UNSAFE_unverified() != NULL) {
     memcpy(raw_img->icc_profile_buf, tainted_jp2_image->icc_profile_buf.UNSAFE_unverified(), sizeof(OPJ_BYTE)*(tainted_jp2_image->icc_profile_len.UNSAFE_unverified()));
-    printf("Line %d\n", __LINE__);
-    // SEGFAULTING: sandbox->sb()->free_in_sandbox(tainted_jp2_image->icc_profile_buf);
+    sandbox->sb()->free_in_sandbox(tainted_jp2_image->icc_profile_buf);
   }
 
-  printf("Line %d\n", __LINE__);
-  // SEGFAULTING: sandbox->sb()->free_in_sandbox(tainted_jp2_image);
+  sandbox->sb()->free_in_sandbox(tainted_jp2_image);
+  printf("Finished untainting.\n");
   return raw_img;
 }
 
