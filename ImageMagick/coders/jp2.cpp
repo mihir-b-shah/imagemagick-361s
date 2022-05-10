@@ -321,20 +321,22 @@ static const char *error_message__verifier = [] (unique_ptr<const char> message)
   return message;
 }
 
+#define MINIMUM_SEVERITY 0
+#define MAXIMUM_SEVERITY 799
 #define MAXIMUM_EXCEPTION_REASON_LENGTH 300
 #define MAXIMUM_EXCPETION_DESCRIPTION_LENGTH 300
 static void *client_data__verifier = [] (unique_ptr<void> client_data) {
   ExceptionInfo *exception = (ExceptionInfo *) client_data;
 
   if (
-    !(0 <= exception->severity && exception->severity <= 799) ||
-    !(sandbox->sb()->is_in_same_sandbox(client_data, reason)) ||
-    (exception->reason > MAXIMUM_EXCEPTION_REASON_LENGTH) ||
-    !(sandbox->sb()->is_in_same_sandbox(client_data, description)) ||
-    (exception->description > MAXIMUM_EXCEPTION_DESCRIPTION_LENGTH)
-    !(sandbox->sb()->is_in_same_sandbox(client_data, exceptions)) ||
-    !(sandbox->sb()->is_in_same_sandbox(client_data, semaphore))
-    !(signature == MagickCoreSignature || signature == (~MagickCoreSignature))
+    !(MINIMUM_SEVERITY <= exception->severity && exception->severity <= MAXIMUM_SEVERITY) ||
+    !(sandbox->sb()->is_in_same_sandbox(client_data, exception->reason)) ||
+    (strlen(exception->reason) > MAXIMUM_EXCEPTION_REASON_LENGTH) ||
+    !(sandbox->sb()->is_in_same_sandbox(client_data, exception->description)) ||
+    (strlen(exception->description) > MAXIMUM_EXCEPTION_DESCRIPTION_LENGTH) ||
+    !(sandbox->sb()->is_in_same_sandbox(client_data, exception->exceptions)) ||
+    !(sandbox->sb()->is_in_same_sandbox(client_data, exception->semaphore)) ||
+    !(exception->signature == MagickCoreSignature || exception->signature == (~MagickCoreSignature))
   ) {
     printf("ERROR: INVALID client_data CAUGHT\n");
     exit(EXIT_FAILURE);
@@ -359,7 +361,33 @@ static void JP2ErrorHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
     message,"`%s'","OpenJP2");
 }
 
+static void *read_length__verifier(OPJ_SIZE_T length) {
+  if (length > OPJ_J2K_STREAM_CHUNK_SIZE) {
+    printf("ERROR: INVALID read length CAUGHT\n");
+    exit(EXIT_FAILURE);
+  }
 
+  return length;
+}
+
+#define MINIMUM_COMPOSITION 0
+#define MAXIMUM_COMPOSITION 81
+static void *generic_image__verifier(unique_ptr<Image> image) {
+  if (
+    !(MINIMUM_COMPOSITION <= image->composition && image -> composition <= MAXIMUM_COMPOSITION)
+  ) {
+    printf("ERROR: INVALID image CAUGHT\n");
+    exit(EXIT_FAILURE);
+  }
+
+  return image;
+}
+
+static void *context_image__verifier(unique_ptr<void> context) {
+  unique_ptr<Image> image = (unique_ptr<Image>) context;
+
+  return (unique_ptr<void>) generic_image__verifier(image);
+}
 
 // TODO: should these return types be tainted?
 static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2ReadHandler(
@@ -368,9 +396,11 @@ static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2ReadHandler(
                                  tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> tainted_len,
                                  tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx)
 {
-  void* buffer = tainted_buf.UNSAFE_unverified();
-  OPJ_SIZE_T length = tainted_len.UNSAFE_unverified();
-  void* context = tainted_ctx.UNSAFE_unverified();
+  void* buffer = tainted_buf.unverified_safe_pointer_because(
+    OPJ_J2K_STREAM_CHUNK_SIZE, "Points to library data region"
+  );
+  OPJ_SIZE_T length = tainted_len.copy_and_verify(read_length__verifier);
+  void* context = tainted_ctx.copy_and_verify(context_image__verifier);
 
   Image
     *image;
@@ -1551,7 +1581,7 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
     parameters=(opj_cparameters_t *) RelinquishMagickMemory(parameters);
     ThrowWriterException(DelegateError,"UnableToEncodeImageFile");
   }
-  
+
   sandbox->sb()->invoke_sandbox_function(opj_stream_set_read_function, tainted_stream, sandbox->read_cb);
   sandbox->sb()->invoke_sandbox_function(opj_stream_set_write_function, tainted_stream, sandbox->write_cb);
   sandbox->sb()->invoke_sandbox_function(opj_stream_set_seek_function, tainted_stream, sandbox->seek_cb);

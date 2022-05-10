@@ -10,6 +10,5 @@ build/
 
 # original backup files
 *.orig
-
 .vscode/
 
