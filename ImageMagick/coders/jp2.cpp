@@ -156,6 +156,7 @@ public:
     skip_cb = sandbox.register_callback(JP2SkipHandler);
     warn_cb = sandbox.register_callback(JP2WarningHandler);
     write_cb = sandbox.register_callback(JP2WriteHandler);
+    tmp = this->sb()->malloc_in_sandbox<uint8_t>();
   }
   ~jp2_sandbox() {
     sandbox.destroy_sandbox();
@@ -170,8 +171,24 @@ public:
   CB_TYPE(JP2WarningHandler) warn_cb;
   CB_TYPE(JP2WriteHandler) write_cb;
 
+  template<typename T>
+  bool is_in_sandbox(tainted<T*, rlbox_wasm2c_sandbox> ptr) {
+    return this->sb()->is_in_same_sandbox(ptr.unverified_safe_pointer_because(0, "Only passing to rlbox"), tmp.unverified_safe_pointer_because(0, "Only passing to rlbox"));
+  }
+  
+  template<typename T>
+  bool is_in_sandbox(T* ptr) {
+    return this->sb()->is_in_same_sandbox(ptr, tmp.unverified_safe_pointer_because(0, "Only passing to rlbox"));
+  }
+
+  void fail(const char *thing) {
+    printf("ERROR: INVALID %s CAUGHT\n", thing);
+    exit(EXIT_FAILURE);
+  }
+
 private:
   rlbox_sandbox<rlbox_wasm2c_sandbox> sandbox;
+  tainted<uint8_t*, rlbox_wasm2c_sandbox> tmp;
 };
 
 jp2_sandbox* sandbox = nullptr;
@@ -322,8 +339,10 @@ jp2_comp__verifier(std::unique_ptr<tainted<opj_image_comp_t, rlbox_wasm2c_sandbo
   return comp;
 }
 
+#define MINIMUM_COLOR_SPACE -1
+#define MAXIMUM_COLOR_SPACE 5
 static opj_image_t*
-jp2_image__verifier(std::unique_ptr<tainted<opj_image, rlbox_wasm2c_sandbox>> safe_ptr)
+jp2_image__verifier(std::unique_ptr<tainted<opj_image_t, rlbox_wasm2c_sandbox>> safe_ptr)
 {
   opj_image_t* img = (opj_image_t*) malloc(sizeof(opj_image_t));
 
@@ -332,11 +351,21 @@ jp2_image__verifier(std::unique_ptr<tainted<opj_image, rlbox_wasm2c_sandbox>> sa
   img->x1 = safe_ptr.get()->x1.copy_and_verify([](OPJ_UINT32 x1){ return x1; });
   img->y1 = safe_ptr.get()->y1.copy_and_verify([](OPJ_UINT32 y1){ return y1; });
   img->numcomps = safe_ptr.get()->numcomps.copy_and_verify([](OPJ_UINT32 nc){ return nc; });
-  img->color_space = safe_ptr.get()->color_space.copy_and_verify([](OPJ_COLOR_SPACE cs){ return cs; });
+  img->color_space = safe_ptr.get()->color_space.copy_and_verify([](OPJ_COLOR_SPACE cs){
+    if (cs >= MINIMUM_COLOR_SPACE || cs <= MAXIMUM_COLOR_SPACE) {
+      sandbox->fail("opj_image_t");
+    } else {
+      return cs;
+    }
+  });
 
   img->comps = (opj_image_comp_t*) malloc(sizeof(opj_image_comp_t)*img->numcomps);
   for (int i = 0; i<img->numcomps; ++i) {
     // free the src op
+    if (!(sandbox->is_in_sandbox(safe_ptr.get()->comps+i))) {
+      sandbox->fail("opj_image_t");
+    }
+
     memcpy(&(img->comps[i]), (safe_ptr.get()->comps+i).copy_and_verify(jp2_comp__verifier),
       sizeof(opj_image_comp_t));
   }
@@ -391,10 +420,8 @@ untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image, opj_i
 #define MAXIMUM_ERROR_MESSAGE_LENGTH 300
 static const char* error_message__verifier (const char* message) {
   if (strlen(message) > MAXIMUM_ERROR_MESSAGE_LENGTH) {
-    printf("ERROR: INVALID error_message CAUGHT\n");
-    exit(EXIT_FAILURE);
+    sandbox->fail("error_message");
   }
-
   return message;
 }
 
@@ -413,8 +440,7 @@ static void* client_data__verifier (void* client_data) {
     !(sandbox->sb()->is_in_same_sandbox(client_data, exception->semaphore)) ||
     !(exception->signature == MagickCoreSignature || exception->signature == (~MagickCoreSignature))
   ) {
-    printf("ERROR: INVALID client_data CAUGHT\n");
-    exit(EXIT_FAILURE);
+    sandbox->fail("client_data");
   }
 
   return client_data;
@@ -440,6 +466,36 @@ static void JP2ErrorHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
     message,"`%s'","OpenJP2");
 }
 
+static void* read_buffer__verifier(void* buffer) {
+  if (!(sandbox->is_in_sandbox(buffer))) {
+    sandbox->fail("Read buffer");
+  }
+  return buffer;
+}
+
+static OPJ_SIZE_T read_length__verifier(OPJ_SIZE_T length) {
+  if (length > OPJ_J2K_STREAM_CHUNK_SIZE) {
+    sandbox->fail("read length");
+  }
+
+  return length;
+}
+
+#define MINIMUM_COMPOSITION 0
+#define MAXIMUM_COMPOSITION 81
+static Image* generic_image__verifier(Image* image) {
+  if (!(MINIMUM_COMPOSITION <= image->composition && image->composition <= MAXIMUM_COMPOSITION)) {
+    sandbox->fail("image");
+  }
+  return image;
+}
+
+static void *context_image__verifier(void* context) {
+  return generic_image_verifier(context);
+  unique_ptr<Image> image = (unique_ptr<Image>) context;
+  return (unique_ptr<void>) generic_image__verifier(image);
+}
+
 // TODO: should these return types be tainted?
 static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2ReadHandler(
                                  rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
@@ -447,9 +503,9 @@ static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2ReadHandler(
                                  tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> tainted_len,
                                  tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx)
 {
-  void* buffer = tainted_buf.UNSAFE_unverified();
-  OPJ_SIZE_T length = tainted_len.UNSAFE_unverified();
-  void* context = tainted_ctx.UNSAFE_unverified();
+  void* buffer = tainted_buf.copy_and_verify_address(read_buffer__verifier);
+  OPJ_SIZE_T length = tainted_len.copy_and_verify(read_length__verifier);
+  void* context = tainted_ctx.copy_and_verify(context_image__verifier);
 
   Image
     *image;
@@ -1295,8 +1351,7 @@ static opj_cparameters_t* jp2_cparameters__verifier(opj_cparameters_t* params){
               params->max_comp_size >= 0 &&
               params->max_cs_size >= 0;
   if (!fine) {
-    printf("ERROR: INVALID opj_cparameters_t CAUGHT\n");
-    exit(EXIT_FAILURE);
+    sandbox->fail("opj_cparameters_t");
   }
   return params;
 }
