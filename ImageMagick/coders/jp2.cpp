@@ -292,10 +292,10 @@ static std::unique_ptr<tainted<T, rlbox_wasm2c_sandbox>> first_untaint(tainted<T
   });
 }
 
-static std::unique_ptr<opj_image_t> jp2_image__verifier (std::unique_ptr<opj_image_t> img) {
+static opj_image_t* jp2_image__verifier (opj_image_t* img) {
   if (
     (img->color_space < -1 || 5 < img->color_space) ||
-    (!sandbox->sb()->is_in_same_sandbox(img.get(), img->icc_profile_buf))
+    (!sandbox->sb()->is_in_same_sandbox(img, img->icc_profile_buf))
   ) {
     printf("ERROR: INVALID opj_image_t CAUGHT\n");
     exit(EXIT_FAILURE);
@@ -303,7 +303,7 @@ static std::unique_ptr<opj_image_t> jp2_image__verifier (std::unique_ptr<opj_ima
 
   for (int i = 0; i < img->numcomps; i++) {
     if (
-      (!sandbox->sb()->is_in_same_sandbox(img.get(), img->comps + i))
+      (!sandbox->sb()->is_in_same_sandbox(img, img->comps + i))
     ) {
       printf("ERROR: INVALID opj_image_t CAUGHT\n");
       exit(EXIT_FAILURE);
@@ -311,11 +311,6 @@ static std::unique_ptr<opj_image_t> jp2_image__verifier (std::unique_ptr<opj_ima
   }
 
   return img;
-}
-
-static std::unique_ptr<opj_image>
-myfunc(tainted<opj_image_t, rlbox_wasm2c_sandbox> obj){
-  return obj.UNSAFE_unverified();
 }
 
 static opj_image_t*
@@ -327,19 +322,9 @@ untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image, opj_i
     new_img = true;
   }
   
-  // tainted<A*> -> tainted<A>
-  // tainted<A> -> A*
-  std::unique_ptr<tainted<opj_image_t, rlbox_wasm2c_sandbox>> p1 = first_untaint<opj_image_t>(tainted_jp2_image);
-  auto res = p1->copy_and_verify(myfunc);
-  
-  tainted_jp2_image.copy_and_verify_address([](uintptr_t ptr) {
-    (jp2_image*) ptr
-    return std::move(val);
-  });
-
-
+  opj_image_t* untainted_img = tainted_jp2_image.UNSAFE_unverified();
   memcpy(raw_img, untainted_img, sizeof(opj_image_t));
-  untainted_img = jp2_image__verifier(tainted_jp2_ima
+  untainted_img = jp2_image__verifier(untainted_img);
 
   if (new_img) {
     tainted<opj_image_comp_t*, rlbox_wasm2c_sandbox> tcomps = (*tainted_jp2_image).comps;
@@ -1651,8 +1636,7 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
     "Memcpying to the exception object"), exception, sizeof(ExceptionInfo));
   
   sandbox->sb()->invoke_sandbox_function(opj_set_warning_handler, tainted_codec, sandbox->warn_cb, tainted_excp);
-  sandbox->sb()->invoke_sandbox_function(opj_set_error
-  _handler, tainted_codec, sandbox->error_cb, tainted_excp);
+  sandbox->sb()->invoke_sandbox_function(opj_set_error_handler, tainted_codec, sandbox->error_cb, tainted_excp);
 
   tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image = sandbox->sb()->malloc_in_sandbox<opj_image_t>();
   memcpy(tainted_jp2_image.unverified_safe_pointer_because(sizeof(opj_image_t),
