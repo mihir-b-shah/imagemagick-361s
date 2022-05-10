@@ -294,16 +294,14 @@ static opj_image_t* jp2_image__verifier (unique_ptr<opj_image_t> img) {
     !(MINIMUM_COLOR_SPACE <= img->color_space && img->color_space <= MAXIMUM_COLOR_SPACE) ||
     !(sandbox->sb()->is_in_same_sandbox(img, img->icc_profile_buf))
   ) {
-    printf("ERROR: INVALID opj_image_t CAUGHT\n");
-    exit(EXIT_FAILURE);
+    sandbox->fail("opj_image_t");
   }
 
   for (int i = 0; i < img->numcomps; i++) {
     if (
       (!sandbox->sb()->is_in_same_sandbox(img, img->comps + i))
     ) {
-      printf("ERROR: INVALID opj_image_t CAUGHT\n");
-      exit(EXIT_FAILURE);
+      sandbox->fail("opj_image_t");
     }
   }
 
@@ -392,8 +390,7 @@ untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image, opj_i
 #define MAXIMUM_ERROR_MESSAGE_LENGTH 300
 static const char* error_message__verifier (const char* message) {
   if (strlen(message) > MAXIMUM_ERROR_MESSAGE_LENGTH) {
-    printf("ERROR: INVALID error_message CAUGHT\n");
-    exit(EXIT_FAILURE);
+    sandbox->fail("error_message");
   }
 
   return message;
@@ -414,8 +411,7 @@ static void* client_data__verifier (void* client_data) {
     !(sandbox->sb()->is_in_same_sandbox(client_data, exception->semaphore)) ||
     !(exception->signature == MagickCoreSignature || exception->signature == (~MagickCoreSignature))
   ) {
-    printf("ERROR: INVALID client_data CAUGHT\n");
-    exit(EXIT_FAILURE);
+    sandbox->fail("client_data");
   }
 
   return client_data;
@@ -426,8 +422,7 @@ static void* client_data__verifier (void* client_data) {
 #define MAXIMUM_ERROR_MESSAGE_LENGTH 300
 static const char *error_message__verifier = [] (unique_ptr<const char> message) {
   if (strlen(message > MAXIMUM_ERROR_MESSAGE_LENGTH)) {
-    printf("ERROR: INVALID error_message CAUGHT\n");
-    exit(EXIT_FAILURE);
+    sandbox->fail("error_message");
   }
 
   return message;
@@ -450,8 +445,7 @@ static void *client_data__verifier = [] (unique_ptr<void> client_data) {
     !(sandbox->sb()->is_in_same_sandbox(client_data, exception->semaphore)) ||
     !(exception->signature == MagickCoreSignature || exception->signature == (~MagickCoreSignature))
   ) {
-    printf("ERROR: INVALID client_data CAUGHT\n");
-    exit(EXIT_FAILURE);
+    sandbox->fail("client_data");
   }
 
   return client_data;
@@ -476,10 +470,17 @@ static void JP2ErrorHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
     message,"`%s'","OpenJP2");
 }
 
+static void *read_buffer__verifier(unique_ptr<void> buffer) {
+  if (!(sandbox->is_in_sandbox(buffer))) {
+    sandbox->fail();
+  }
+
+  return buffer;
+}
+
 static void *read_length__verifier(OPJ_SIZE_T length) {
   if (length > OPJ_J2K_STREAM_CHUNK_SIZE) {
-    printf("ERROR: INVALID read length CAUGHT\n");
-    exit(EXIT_FAILURE);
+    sandbox->fail("read length");
   }
 
   return length;
@@ -491,8 +492,7 @@ static void *generic_image__verifier(unique_ptr<Image> image) {
   if (
     !(MINIMUM_COMPOSITION <= image->composition && image -> composition <= MAXIMUM_COMPOSITION)
   ) {
-    printf("ERROR: INVALID image CAUGHT\n");
-    exit(EXIT_FAILURE);
+    sandbox->fail("image");
   }
 
   return image;
@@ -511,9 +511,7 @@ static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2ReadHandler(
                                  tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> tainted_len,
                                  tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx)
 {
-  void* buffer = tainted_buf.unverified_safe_pointer_because(
-    OPJ_J2K_STREAM_CHUNK_SIZE, "Points to library data region"
-  );
+  void* buffer = tainted_buf.copy_and_verify_address(read_buffer__verifier);
   OPJ_SIZE_T length = tainted_len.copy_and_verify(read_length__verifier);
   void* context = tainted_ctx.copy_and_verify(context_image__verifier);
 
@@ -1359,8 +1357,7 @@ static opj_cparameters_t* jp2_cparameters__verifier(opj_cparameters_t* params){
               params->max_comp_size >= 0 &&
               params->max_cs_size >= 0;
   if (!fine) {
-    printf("ERROR: INVALID opj_cparameters_t CAUGHT\n");
-    exit(EXIT_FAILURE);
+    sandbox->fail("opj_cparameters_t");
   }
   return params;
 }
