@@ -417,7 +417,7 @@ untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image, opj_i
 %
 */
 
-// #if defined(MAGICKCORE_LIBOPENJP2_DELEGATE)
+#if defined(MAGICKCORE_LIBOPENJP2_DELEGATE)
 
 #define MAXIMUM_ERROR_MESSAGE_LENGTH 300
 static char[] error_message__verifier(unique_ptr<char[]> message) {
