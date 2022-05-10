@@ -4,7 +4,7 @@ RLWASM_DIR="${ROOT}/rlbox_wasm2c_sandbox"
 OPJ_DIR="${ROOT}/openjpeg/src/lib/openjp2"
 
 CC=g++                                                                                      \
-CFLAGS="-std=c++17 -pthread"                                                                \
+CFLAGS="-std=c++17 -pthread -g"                                                             \
 CPPFLAGS="-I ${RLWASM_DIR}/build/_deps/rlbox-src/code/include -I ${RLWASM_DIR}/build/_deps/rlbox-src/code/include -I ${RLWASM_DIR}/include/ -I ${RLWASM_DIR}/build/_deps/mod_wasm2c-src/wasm2c/"       \
 LDFLAGS="-pthread"                                                                          \
 LIBS="-Wl,-rpath=${OPJ_DIR} -lpthread -ldl -lrt"                                            \
