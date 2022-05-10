@@ -154,6 +154,13 @@ public:
   CB_TYPE(JP2WarningHandler) warn_cb;
   CB_TYPE(JP2WriteHandler) write_cb;
 
+  bool is_in_sandbox(void *ptr) {
+    void *tmp = this->sb()->malloc_in_sandbox<uint8_t>(1);
+    bool ret = this->sb()->is_in_same_sandbox(ptr, tmp);
+    this->sb()->free_in_sandbox(tmp);
+    return ret;
+  }
+
 private:
   rlbox_sandbox<rlbox_wasm2c_sandbox> sandbox;
 };
