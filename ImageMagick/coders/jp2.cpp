@@ -517,7 +517,7 @@ static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2ReadHandler(
   ssize_t
     count;
 
-  image=(Image *) context;
+  image = reinterpret_cast<Image *>(context);
   count=ReadBlob(image,(ssize_t) length, buffer);
   if (count == 0)
     return((OPJ_SIZE_T) -1);
@@ -559,14 +559,21 @@ static tainted<OPJ_BOOL, rlbox_wasm2c_sandbox> JP2SeekHandler(
                                tainted<OPJ_OFF_T, rlbox_wasm2c_sandbox> tainted_offs,
                                tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx)
 {
-  OPJ_OFF_T offset = tainted_offs.copy_and_verify(tainted_offs);
-  void* context = tainted_ctx.UNSAFE_unverified();
+  OPJ_OFF_T offset = tainted_offs.copy_and_verify(seek_offset__verifier);
+  uintptr_t context = tainted_ctx.copy_and_verify_address(context_image__verifier);
 
   Image
     *image;
 
-  image=(Image *) context;
+  image = reinterpret_cast<Image *>(context);
   return(SeekBlob(image,offset,SEEK_SET) < 0 ? OPJ_FALSE : OPJ_TRUE);
+}
+
+static OPJ_OFF_T skip_offset__verifier(unique_ptr<OPJ_OFF_T> offset) {
+  if (global__user_data_length != -1 && global__user_data_length != offset) {
+    sandbox->fail("skip offset");
+  }
+  return offset;
 }
 
 static tainted<OPJ_OFF_T, rlbox_wasm2c_sandbox> JP2SkipHandler(
@@ -574,13 +581,13 @@ static tainted<OPJ_OFF_T, rlbox_wasm2c_sandbox> JP2SkipHandler(
                                 tainted<OPJ_OFF_T, rlbox_wasm2c_sandbox> tainted_offs,
                                 tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx)
 {
-  OPJ_OFF_T offset = tainted_offs.UNSAFE_unverified();
-  void* context = tainted_ctx.UNSAFE_unverified();
+  OPJ_OFF_T offset = tainted_offs.copy_and_verify(skip_offset__verifier);
+  uintptr_t context = tainted_ctx.copy_and_verify_address(context_image__verifier);
 
   Image
     *image;
 
-  image=(Image *) context;
+  image = reinterpret_cast<Image *>(context);
   return(SeekBlob(image,offset,SEEK_CUR) < 0 ? -1 : offset);
 }
 
