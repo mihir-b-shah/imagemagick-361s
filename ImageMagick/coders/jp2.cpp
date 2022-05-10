@@ -276,10 +276,17 @@ taint_img(opj_image_t* raw_img)
   return tainted_jp2_image;
 }
 
-static opj_image_t* jp2_image__verifier (opj_image_t* img) {
+template<typename T>
+static std::unique_ptr<tainted<T, rlbox_wasm2c_sandbox>> first_untaint(tainted<T*, rlbox_wasm2c_sandbox> tainted_ptr) {
+  return tainted_ptr.copy_and_verify([](std::unique_ptr<tainted<T, rlbox_wasm2c_sandbox>> val) {
+    return std::move(val);
+  });
+}
+
+static std::unique_ptr<opj_image_t> jp2_image__verifier (std::unique_ptr<opj_image_t> img) {
   if (
     (img->color_space < -1 || 5 < img->color_space) ||
-    (!sandbox->sb()->is_in_same_sandbox(img, img->icc_profile_buf))
+    (!sandbox->sb()->is_in_same_sandbox(img.get(), img->icc_profile_buf))
   ) {
     printf("ERROR: INVALID opj_image_t CAUGHT\n");
     exit(EXIT_FAILURE);
@@ -287,7 +294,7 @@ static opj_image_t* jp2_image__verifier (opj_image_t* img) {
 
   for (int i = 0; i < img->numcomps; i++) {
     if (
-      (!sandbox->sb()->is_in_same_sandbox(img, img->comps + i))
+      (!sandbox->sb()->is_in_same_sandbox(img.get(), img->comps + i))
     ) {
       printf("ERROR: INVALID opj_image_t CAUGHT\n");
       exit(EXIT_FAILURE);
@@ -295,6 +302,11 @@ static opj_image_t* jp2_image__verifier (opj_image_t* img) {
   }
 
   return img;
+}
+
+static std::unique_ptr<opj_image>
+myfunc(tainted<opj_image_t, rlbox_wasm2c_sandbox> obj){
+  return obj.UNSAFE_unverified();
 }
 
 static opj_image_t*
@@ -305,22 +317,16 @@ untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image, opj_i
     raw_img = (opj_image_t*) malloc(sizeof(opj_image_t));
     new_img = true;
   }
+  
+  // tainted<A*> -> tainted<A>
+  // tainted<A> -> A*
+  std::unique_ptr<tainted<opj_image_t, rlbox_wasm2c_sandbox>> p1 = first_untaint<opj_image_t>(tainted_jp2_image);
+  auto res = p1->copy_and_verify(myfunc);
 
-  /*
-  tainted<int*, rlbox_wasm2c_sandbox> pa = sandbox->sb()->malloc_in_sandbox<int>();
-  auto result1 = pa.copy_and_verify([&](std::unique_ptr<int> val) {
-    return std::move(val);
-  }); 
+  //opj_image_t* untainted_img = first_untaint<opj_image_t>(tainted_jp2_image)
+  //  ->copy_and_verify(jp2_image__verifier).get();
 
-  auto result2 = tainted_jp2_image.copy_and_verify([&](std::unique_ptr<opj_image_t> val) {
-    return std::move(val);
-  });
-  */
-
-  opj_image_t* untainted_img = tainted_jp2_image.UNSAFE_unverified();
-  // fine in a single-threaded context.
-  untainted_img = jp2_image__verifier(untainted_img);
-  memcpy(raw_img, untainted_img, sizeof(opj_image_t));
+  //memcpy(raw_img, untainted_img, sizeof(opj_image_t));
 
   if (new_img) {
     tainted<opj_image_comp_t*, rlbox_wasm2c_sandbox> tcomps = (*tainted_jp2_image).comps;
