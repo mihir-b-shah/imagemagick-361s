@@ -161,6 +161,11 @@ public:
     return ret;
   }
 
+  void fail(const char *thing) {
+    printf("ERROR: INVALID " + thing + " CAUGHT\n");
+    exit(EXIT_FAILURE);
+  }
+
 private:
   rlbox_sandbox<rlbox_wasm2c_sandbox> sandbox;
 };
