@@ -1293,6 +1293,15 @@ static opj_cparameters_t* jp2_cparameters__verifier(opj_cparameters_t* params){
   return params;
 }
 
+static OPJ_BOOL jp2_bool__verifier(OPJ_BOOL b)
+{
+  if (b != 0 && b != 1) {
+    printf("ERROR: INVALID boolean CAUGHT\n");
+    exit(EXIT_FAILURE);
+  }
+  return b;
+}
+
 static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
   ExceptionInfo *exception)
 {
@@ -1629,7 +1638,8 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
     "Memcpying to the exception object"), exception, sizeof(ExceptionInfo));
   
   sandbox->sb()->invoke_sandbox_function(opj_set_warning_handler, tainted_codec, sandbox->warn_cb, tainted_excp);
-  sandbox->sb()->invoke_sandbox_function(opj_set_warning_handler, tainted_codec, sandbox->error_cb, tainted_excp);
+  sandbox->sb()->invoke_sandbox_function(opj_set_error
+  _handler, tainted_codec, sandbox->error_cb, tainted_excp);
 
   tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image = sandbox->sb()->malloc_in_sandbox<opj_image_t>();
   memcpy(tainted_jp2_image.unverified_safe_pointer_because(sizeof(opj_image_t),
@@ -1660,12 +1670,12 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
     "Memcpying to the Image img object"), image, sizeof(Image));
   sandbox->sb()->invoke_sandbox_function(opj_stream_set_user_data, tainted_stream, tainted_image, tainted_free_func);
 
-  jp2_status = sandbox->sb()->invoke_sandbox_function(opj_start_compress, tainted_codec, tainted_jp2_image, tainted_stream).UNSAFE_unverified();
+  jp2_status = sandbox->sb()->invoke_sandbox_function(opj_start_compress, tainted_codec, tainted_jp2_image, tainted_stream).copy_and_verify(jp2_bool__verifier);
   if ((jp2_status == 0) || 
       (sandbox->sb()->invoke_sandbox_function(
-        opj_encode, tainted_codec, tainted_stream).UNSAFE_unverified() == 0) ||
+        opj_encode, tainted_codec, tainted_stream).copy_and_verify(jp2_bool__verifier) == 0) ||
       (sandbox->sb()->invoke_sandbox_function(
-        opj_end_compress, tainted_codec, tainted_stream).UNSAFE_unverified() == 0))
+        opj_end_compress, tainted_codec, tainted_stream).copy_and_verify(jp2_bool__verifier) == 0))
     {
       sandbox->sb()->invoke_sandbox_function(opj_stream_destroy, tainted_stream);
       sandbox->sb()->invoke_sandbox_function(opj_destroy_codec, tainted_codec);
