@@ -542,7 +542,11 @@ static opj_event_mgr_t *generic_event_manager__verifier(opj_event_mgr_t *event_m
     !(sandbox->is_in_sandbox(event_manager->m_warning_data)) ||
     !(sandbox->is_in_sandbox(event_manager->m_info_data)) ||
     !(eh + wh + ih == 1) // Only one is non-NULL
-  )
+  ) {
+    sandbox->fail("event manager")
+  }
+
+  return event_manager;
 }
 
 static uintptr_t context_event_manager__verifier(uintptr_t context) {
@@ -591,17 +595,26 @@ static tainted<OPJ_OFF_T, rlbox_wasm2c_sandbox> JP2SkipHandler(
   return(SeekBlob(image,offset,SEEK_CUR) < 0 ? -1 : offset);
 }
 
+#define MAXIMUM_WARNING_MESSAGE_LENGTH 300
+static char[] warning_message__verifier(unique_ptr<char[]> message) {
+  if (strlen(*message) > MAXIMUM_WARNING_MESSAGE_LENGTH) {
+    sandbox->fail("warning message");
+  }
+
+  return *message;
+}
+
 static void JP2WarningHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
                               tainted<const char*, rlbox_wasm2c_sandbox> tainted_msg,
                               tainted<void*, rlbox_wasm2c_sandbox> tainted_cl_data)
 {
-  const char* message = tainted_msg.UNSAFE_unverified();
-  void* client_data = tainted_cl_data.UNSAFE_unverified();
+  const char[] message = tainted_msg.copy_and_verify_string(warning_message__verifier);
+  void* client_data = tainted_cl_data.copy_and_verify_address(client_data__verifier);
 
   ExceptionInfo
     *exception;
 
-  exception=(ExceptionInfo *) client_data;
+  exception = reinterpret_cast<ExceptionInfo *>(client_data);
   (void) ThrowMagickException(exception,GetMagickModule(),CoderWarning,
     message,"`%s'","OpenJP2");
 }
