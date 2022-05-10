@@ -532,6 +532,28 @@ static OPJ_OFF_T seek_offset__verifier(unique_ptr<OPJ_OFF_T> offset) {
   return offset;
 }
 
+static opj_event_mgr_t *generic_event_manager__verifier(opj_event_mgr_t *event_manager) {
+  opj_msg_callback eh = event_manager->error_handler == NULL ? 0 : 1;
+  opj_msg_callback wh = event_manager->warning_handler == NULL ? 0 : 1;
+  opj_msg_callback ih = event_manager->info_handler == NULL ? 0 : 1;
+
+  if (
+    !(sandbox->is_in_sandbox(event_manager->m_error_data)) ||
+    !(sandbox->is_in_sandbox(event_manager->m_warning_data)) ||
+    !(sandbox->is_in_sandbox(event_manager->m_info_data)) ||
+    !(eh + wh + ih == 1) // Only one is non-NULL
+  )
+}
+
+static uintptr_t context_event_manager__verifier(uintptr_t context) {
+  if (!sandbox->is_in_sandbox(context)) {
+    sandbox->fail("seek context");
+  }
+
+  opj_event_mgr_t *event_manager = generic_event_manager__verifier(reinterpret_cast<opj_event_mgr_t *>(context));
+  return reinterpret_cast<uintptr_t>(event_manager);
+}
+
 static tainted<OPJ_BOOL, rlbox_wasm2c_sandbox> JP2SeekHandler(
                                rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
                                tainted<OPJ_OFF_T, rlbox_wasm2c_sandbox> tainted_offs,
