@@ -83,6 +83,15 @@
 
 using namespace rlbox;
 
+/*
+tainted<opj_image*> img;
+img->x0
+
+
+
+
+*/
+
 // reflection stuff allowing us to use fields in rlbox.
 #define sandbox_fields_reflection_openjp2_class_opj_image_t(f, g, ...) \
   f(OPJ_UINT32        , x0              , FIELD_NORMAL, ##__VA_ARGS__) g() \
@@ -322,11 +331,15 @@ untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image, opj_i
   // tainted<A> -> A*
   std::unique_ptr<tainted<opj_image_t, rlbox_wasm2c_sandbox>> p1 = first_untaint<opj_image_t>(tainted_jp2_image);
   auto res = p1->copy_and_verify(myfunc);
+  
+  tainted_jp2_image.copy_and_verify_address([](uintptr_t ptr) {
+    (jp2_image*) ptr
+    return std::move(val);
+  });
 
-  //opj_image_t* untainted_img = first_untaint<opj_image_t>(tainted_jp2_image)
-  //  ->copy_and_verify(jp2_image__verifier).get();
 
-  //memcpy(raw_img, untainted_img, sizeof(opj_image_t));
+  memcpy(raw_img, untainted_img, sizeof(opj_image_t));
+  untainted_img = jp2_image__verifier(tainted_jp2_ima
 
   if (new_img) {
     tainted<opj_image_comp_t*, rlbox_wasm2c_sandbox> tcomps = (*tainted_jp2_image).comps;
