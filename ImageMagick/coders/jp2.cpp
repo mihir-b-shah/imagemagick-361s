@@ -182,6 +182,11 @@ public:
     return this->sb()->is_in_same_sandbox(ptr, tmp.unverified_safe_pointer_because(1, "Only passing to rlbox"));
   }
 
+  bool is_in_sandbox(uintptr_t ptr) {
+    return this->sb()->is_in_same_sandbox(reinterpret_cast<const void*>(ptr), tmp.unverified_safe_pointer_because(1, "Only passing to rlbox"));
+  }
+
+
   void fail(const char *thing) {
     printf("ERROR: INVALID %s CAUGHT\n", thing);
     exit(EXIT_FAILURE);
@@ -277,34 +282,29 @@ static MagickBooleanType IsJP2(const unsigned char *magick,const size_t length)
     return(MagickTrue);
   return(MagickFalse);
 }
-
 
-/*
-note, we have 3 copies of the img. Be careful about double frees, etc.
-
-alloc tainted_jp2_image
-copy from jp2_image into tainted_jp2_image
-invoke_in_sandbox(fn_name, tainted_jp2_image);
-copy back to jp2_image
-free tainted_jp2_image
-*/
-static tainted<opj_image_t*, rlbox_wasm2c_sandbox> taint_img(opj_image_t* raw_img)
+static tainted<opj_image_t*, rlbox_wasm2c_sandbox>
+taint_img(opj_image_t* raw_img)
 {
   tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image = sandbox->sb()->malloc_in_sandbox<opj_image_t>();
+  memset(tainted_jp2_image.unverified_safe_pointer_because(sizeof(opj_image_t), "Copying jp2_image over"), 0, sizeof(opj_image_t));
+  /*
   memcpy(tainted_jp2_image.unverified_safe_pointer_because(sizeof(opj_image_t), "Copying jp2_image over"), raw_img, sizeof(opj_image_t));
 
-  if (raw_img->comps != NULL) {
-    tainted<opj_image_comp_t*, rlbox_wasm2c_sandbox> tainted_comps = sandbox->sb()->malloc_in_sandbox<opj_image_comp_t>(raw_img->numcomps);
-    memcpy(tainted_comps.unverified_safe_pointer_because(sizeof(opj_image_comp_t)*raw_img->numcomps, "Copying comps over"), raw_img->comps, sizeof(opj_image_comp_t)*(raw_img->numcomps));
-    tainted_jp2_image->comps = tainted_comps;
+  tainted<opj_image_comp_t*, rlbox_wasm2c_sandbox> tainted_comps = sandbox->sb()->malloc_in_sandbox<opj_image_comp_t>(raw_img->numcomps);
+  memcpy(tainted_comps.unverified_safe_pointer_because(sizeof(opj_image_comp_t)*raw_img->numcomps, "Copying comps over"), raw_img->comps, sizeof(opj_image_comp_t)*(raw_img->numcomps));
+  tainted_jp2_image->comps = tainted_comps;
+
+  for (int i = 0; i<raw_img->numcomps; ++i) {
+    if (raw_img->comps[i].data != NULL) {
+      size_t size = raw_img->comps[i].w * raw_img->comps[i].h * sizeof(OPJ_INT32);
+      tainted<OPJ_INT32*, rlbox_wasm2c_sandbox> tainted_data = sandbox->sb()->malloc_in_sandbox<OPJ_INT32>(size);
+      memcpy(tainted_data.unverified_safe_pointer_because(size, "Copying comps over"), raw_img->comps[i].data, size);
+    }
   }
 
-  if (raw_img->icc_profile_buf != NULL) {
-    tainted<OPJ_BYTE*, rlbox_wasm2c_sandbox> tainted_icc_buf = sandbox->sb()->malloc_in_sandbox<OPJ_BYTE>(raw_img->icc_profile_len);
-    memcpy(tainted_icc_buf.unverified_safe_pointer_because(sizeof(OPJ_BYTE)*raw_img->icc_profile_len, "Copying icc profile over"), raw_img->icc_profile_buf, sizeof(OPJ_BYTE)*(raw_img->icc_profile_len));
-    tainted_jp2_image->icc_profile_buf = tainted_icc_buf;
-  }
-
+  tainted_jp2_image->icc_profile_len = 0;
+  */
   printf("Finished tainting.\n");
   return tainted_jp2_image;
 }
@@ -352,11 +352,10 @@ jp2_image__verifier(std::unique_ptr<tainted<opj_image_t, rlbox_wasm2c_sandbox>> 
   img->y1 = safe_ptr.get()->y1.copy_and_verify([](OPJ_UINT32 y1){ return y1; });
   img->numcomps = safe_ptr.get()->numcomps.copy_and_verify([](OPJ_UINT32 nc){ return nc; });
   img->color_space = safe_ptr.get()->color_space.copy_and_verify([](OPJ_COLOR_SPACE cs){
-    if (cs >= MINIMUM_COLOR_SPACE || cs <= MAXIMUM_COLOR_SPACE) {
+    if (!(cs >= MINIMUM_COLOR_SPACE || cs <= MAXIMUM_COLOR_SPACE)) {
       sandbox->fail("opj_image_t");
-    } else {
-      return cs;
     }
+    return cs;
   });
 
   img->comps = (opj_image_comp_t*) malloc(sizeof(opj_image_comp_t)*img->numcomps);
@@ -365,7 +364,6 @@ jp2_image__verifier(std::unique_ptr<tainted<opj_image_t, rlbox_wasm2c_sandbox>> 
     if (!(sandbox->is_in_sandbox(safe_ptr.get()->comps+i))) {
       sandbox->fail("opj_image_t");
     }
-
     memcpy(&(img->comps[i]), (safe_ptr.get()->comps+i).copy_and_verify(jp2_comp__verifier),
       sizeof(opj_image_comp_t));
   }
@@ -417,22 +415,19 @@ untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image, opj_i
 %
 */
 
-#if defined(MAGICKCORE_LIBOPENJP2_DELEGATE)
-
 #define MAXIMUM_ERROR_MESSAGE_LENGTH 300
-static char[] error_message__verifier(unique_ptr<char[]> message) {
-  if (strlen(*message) > MAXIMUM_ERROR_MESSAGE_LENGTH) {
+static const char* error_message__verifier(std::unique_ptr<const char[]> message) {
+  if (strlen(message.get()) > MAXIMUM_ERROR_MESSAGE_LENGTH) {
     sandbox->fail("error_message");
   }
-
-  return *message;
+  return message.release();
 }
 
 #define MINIMUM_SEVERITY 0
 #define MAXIMUM_SEVERITY 799
 #define MAXIMUM_EXCEPTION_REASON_LENGTH 300
-#define MAXIMUM_EXCPETION_DESCRIPTION_LENGTH 300
-static uintptr_t client_data__verifier(uintptr_t client_data) {
+#define MAXIMUM_EXCEPTION_DESCRIPTION_LENGTH 300
+static void* client_data__verifier(uintptr_t client_data) {
   ExceptionInfo *exception = (ExceptionInfo *) client_data;
 
   if (
@@ -449,16 +444,19 @@ static uintptr_t client_data__verifier(uintptr_t client_data) {
     sandbox->fail("client_data");
   }
 
-  return client_data;
+  return reinterpret_cast<void*>(client_data);
 }
 
+#if defined(MAGICKCORE_LIBOPENJP2_DELEGATE)
 // TODO: should this be static?
 static void JP2ErrorHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
                             tainted<const char*, rlbox_wasm2c_sandbox> tainted_msg,
                             tainted<void*, rlbox_wasm2c_sandbox> tainted_cl_data)
 {
-  const char[] message = tainted_msg.copy_and_verify_string(error_message__verifier);
-  uintptr_t client_data = tainted_cl_data.copy_and_verify_address(client_data__verifier);
+  const char* message = tainted_msg.copy_and_verify_string([](std::unique_ptr<const char[]> val){
+    return error_message__verifier(std::move(val));
+  });
+  void* client_data = tainted_cl_data.copy_and_verify_address(client_data__verifier);
 
   ExceptionInfo
     *exception;
@@ -468,11 +466,11 @@ static void JP2ErrorHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
     message,"`%s'","OpenJP2");
 }
 
-static uintptr_t read_buffer__verifier(uintptr_t buffer) {
+static void* read_buffer__verifier(uintptr_t buffer) {
   if (!(sandbox->is_in_sandbox(buffer))) {
     sandbox->fail("Read buffer");
   }
-  return buffer;
+  return reinterpret_cast<void*>(buffer);
 }
 
 static OPJ_SIZE_T read_length__verifier(OPJ_SIZE_T length) {
@@ -485,7 +483,7 @@ static OPJ_SIZE_T read_length__verifier(OPJ_SIZE_T length) {
 #define MINIMUM_COMPOSITION 0
 #define MAXIMUM_COMPOSITION 81
 static Image* generic_image__verifier(Image* image) {
-  if (!(MINIMUM_COMPOSITION <= image->composition && image->composition <= MAXIMUM_COMPOSITION)) {
+  if (!(MINIMUM_COMPOSITION <= image->compose && image->compose <= MAXIMUM_COMPOSITION)) {
     sandbox->fail("image");
   }
   return image;
@@ -507,9 +505,9 @@ static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2ReadHandler(
                                  tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> tainted_len,
                                  tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx)
 {
-  uintptr_t buffer = tainted_buf.copy_and_verify_address(read_buffer__verifier);
+  void* buffer = tainted_buf.copy_and_verify_address(read_buffer__verifier);
   OPJ_SIZE_T length = tainted_len.copy_and_verify(read_length__verifier);
-  uintptr_t context = tainted_ctx.copy_and_verify_address(context_image__verifier);
+  void* context = sandbox->sb()->lookup_app_ptr(tainted_ctx);
 
   Image
     *image;
@@ -525,13 +523,14 @@ static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2ReadHandler(
 }
 
 OPJ_OFF_T global__user_data_length = -1;
-static OPJ_OFF_T seek_offset__verifier(unique_ptr<OPJ_OFF_T> offset) {
+static OPJ_OFF_T seek_offset__verifier(OPJ_OFF_T offset) {
   if (global__user_data_length != -1 && global__user_data_length != offset) {
     sandbox->fail("seek offset");
   }
   return offset;
 }
 
+/*
 static opj_event_mgr_t *generic_event_manager__verifier(opj_event_mgr_t *event_manager) {
   opj_msg_callback eh = event_manager->error_handler == NULL ? 0 : 1;
   opj_msg_callback wh = event_manager->warning_handler == NULL ? 0 : 1;
@@ -557,6 +556,7 @@ static uintptr_t context_event_manager__verifier(uintptr_t context) {
   opj_event_mgr_t *event_manager = generic_event_manager__verifier(reinterpret_cast<opj_event_mgr_t *>(context));
   return reinterpret_cast<uintptr_t>(event_manager);
 }
+*/
 
 static tainted<OPJ_BOOL, rlbox_wasm2c_sandbox> JP2SeekHandler(
                                rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
@@ -564,7 +564,7 @@ static tainted<OPJ_BOOL, rlbox_wasm2c_sandbox> JP2SeekHandler(
                                tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx)
 {
   OPJ_OFF_T offset = tainted_offs.copy_and_verify(seek_offset__verifier);
-  uintptr_t context = tainted_ctx.copy_and_verify_address(context_image__verifier);
+  void* context = sandbox->sb()->lookup_app_ptr(tainted_ctx);
 
   Image
     *image;
@@ -573,7 +573,7 @@ static tainted<OPJ_BOOL, rlbox_wasm2c_sandbox> JP2SeekHandler(
   return(SeekBlob(image,offset,SEEK_SET) < 0 ? OPJ_FALSE : OPJ_TRUE);
 }
 
-static OPJ_OFF_T skip_offset__verifier(unique_ptr<OPJ_OFF_T> offset) {
+static OPJ_OFF_T skip_offset__verifier(OPJ_OFF_T offset) {
   if (global__user_data_length != -1 && global__user_data_length != offset) {
     sandbox->fail("skip offset");
   }
@@ -586,7 +586,7 @@ static tainted<OPJ_OFF_T, rlbox_wasm2c_sandbox> JP2SkipHandler(
                                 tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx)
 {
   OPJ_OFF_T offset = tainted_offs.copy_and_verify(skip_offset__verifier);
-  uintptr_t context = tainted_ctx.copy_and_verify_address(context_image__verifier);
+  void* context = sandbox->sb()->lookup_app_ptr(tainted_ctx);
 
   Image
     *image;
@@ -596,19 +596,20 @@ static tainted<OPJ_OFF_T, rlbox_wasm2c_sandbox> JP2SkipHandler(
 }
 
 #define MAXIMUM_WARNING_MESSAGE_LENGTH 300
-static char[] warning_message__verifier(unique_ptr<char[]> message) {
-  if (strlen(*message) > MAXIMUM_WARNING_MESSAGE_LENGTH) {
+static const char* warning_message__verifier(std::unique_ptr<const char[]> message) {
+  if (strlen(message.get()) > MAXIMUM_WARNING_MESSAGE_LENGTH) {
     sandbox->fail("warning message");
   }
-
-  return *message;
+  return message.release();
 }
 
 static void JP2WarningHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
                               tainted<const char*, rlbox_wasm2c_sandbox> tainted_msg,
                               tainted<void*, rlbox_wasm2c_sandbox> tainted_cl_data)
 {
-  const char[] message = tainted_msg.copy_and_verify_string(warning_message__verifier);
+  const char* message = tainted_msg.copy_and_verify_string([](std::unique_ptr<const char[]> val){
+    return warning_message__verifier(std::move(val));
+  });
   void* client_data = tainted_cl_data.copy_and_verify_address(client_data__verifier);
 
   ExceptionInfo
@@ -799,19 +800,18 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
   sandbox->sb()->invoke_sandbox_function(
     opj_stream_set_skip_function, tainted_stream, sandbox->skip_cb
   );
-  tainted<Image*, rlbox_wasm2c_sandbox> tainted_image = sandbox->sb()->malloc_in_sandbox<Image>();
-  memcpy(
-    tainted_image.unverified_safe_pointer_because(sizeof(Image),  "Writing to module data region"),
-    image,
-    sizeof(Image)
-  );
+
+  app_pointer<void*, rlbox_wasm2c_sandbox> ap = sandbox->sb()->get_app_pointer(static_cast<void*>(image));
+  tainted<void*, rlbox_wasm2c_sandbox> tainted_image = ap.to_tainted();
+  printf("Is app ptr registered? %d\n", !ap.is_unregistered());
+
   tainted<opj_stream_free_user_data_fn, rlbox_wasm2c_sandbox> tainted_free_func = NULL;
   sandbox->sb()->invoke_sandbox_function(
     opj_stream_set_user_data, tainted_stream, tainted_image, tainted_free_func
   );
-  global__user_data_length = GetBlobSize(tainted_image.UNSAFE_unverified());
+  global__user_data_length = GetBlobSize(image); // This value will be used in verifiers
   sandbox->sb()->invoke_sandbox_function(
-    opj_stream_set_user_data_length, tainted_stream, global__user_data_length)
+    opj_stream_set_user_data_length, tainted_stream, global__user_data_length // should be safe, set_user_data ddoesn't modify anything
   );
 
   tainted<opj_image_t**, rlbox_wasm2c_sandbox> tainted_jp2_image_ptr = sandbox->sb()->malloc_in_sandbox<opj_image_t*>();
@@ -836,7 +836,7 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
   jp2_image = untaint_img(tainted_jp2_ptr, NULL);
 
   jp2_status=OPJ_TRUE;
-
+    
   if ((AcquireMagickResource(WidthResource,(size_t) jp2_image->comps[0].w) == MagickFalse) ||
       (AcquireMagickResource(HeightResource,(size_t) jp2_image->comps[0].h) == MagickFalse))
   {
@@ -851,10 +851,6 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
     sandbox->sb()->invoke_sandbox_function(
       opj_image_destroy, tainted_jp2_image
     );
-
-    jp2_stream = tainted_stream.UNSAFE_unverified();
-    jp2_codec = tainted_codec.UNSAFE_unverified();
-    jp2_image = tainted_jp2_image.UNSAFE_unverified();
     ThrowReaderException(DelegateError,"UnableToDecodeImageFile");
   }
   if (image->ping == MagickFalse)
@@ -865,9 +861,10 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
         Extract an area from the image.
       */
       
+      printf("At line %d\n", __LINE__);
+
       tainted_jp2_image = taint_img(jp2_image);
 
-      image = tainted_image.UNSAFE_unverified();
       jp2_status = sandbox->sb()->invoke_sandbox_function(
         opj_set_decode_area, tainted_codec, tainted_jp2_image,
         (OPJ_INT32) image->extract_info.x,
@@ -879,6 +876,7 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
       jp2_image = untaint_img(tainted_jp2_image, jp2_image);
 
     } else {
+      printf("At line %d\n", __LINE__);
       tainted_jp2_image = taint_img(jp2_image);
 
       jp2_status = sandbox->sb()->invoke_sandbox_function(
@@ -907,10 +905,10 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
       ThrowReaderException(DelegateError,"UnableToDecodeImageFile");
     }
   }
-  image = tainted_image.UNSAFE_unverified();
   if ((image_info->number_scenes != 0) && (image_info->scene != 0)) {
     tainted_jp2_image = taint_img(jp2_image);
 
+    printf("At line %d\n", __LINE__);
     jp2_status = sandbox->sb()->invoke_sandbox_function(
       opj_get_decoded_tile, tainted_codec, tainted_stream, tainted_jp2_image,
       (unsigned int) image_info->scene - 1
@@ -923,6 +921,7 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
     {
       tainted_jp2_image = taint_img(jp2_image);
 
+      printf("At line %d\n", __LINE__);
       jp2_status = sandbox->sb()->invoke_sandbox_function(
         opj_decode, tainted_codec, tainted_stream, tainted_jp2_image
       ).UNSAFE_unverified();
@@ -945,19 +944,16 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
     );
 
     tainted_jp2_image = taint_img(jp2_image);
+    printf("At line %d\n", __LINE__);
     sandbox->sb()->invoke_sandbox_function(
       opj_image_destroy, tainted_jp2_image
     );
-    jp2_stream = tainted_stream.UNSAFE_unverified();
-    jp2_codec = tainted_codec.UNSAFE_unverified();
-    jp2_image = tainted_jp2_image.UNSAFE_unverified();
     ThrowReaderException(DelegateError,"UnableToDecodeImageFile");
   }
   sandbox->sb()->invoke_sandbox_function(
     opj_stream_destroy, tainted_stream
   );
   jp2_stream = tainted_stream.UNSAFE_unverified();
-  image = tainted_image.UNSAFE_unverified();
 
   for (i=0; i < (ssize_t) jp2_image->numcomps; i++)
   {
@@ -982,6 +978,7 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
       ThrowReaderException(CoderError,"IrregularChannelGeometryNotSupported")
     }
   }
+  printf("At line %d\n", __LINE__);
   /*
     Convert JP2 image.
   */
@@ -1001,6 +998,9 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
     else
       if (jp2_image->color_space == 3)
         SetImageColorspace(image,Rec601YCbCrColorspace,exception);
+  
+  printf("At line %d\n", __LINE__);
+
   if (jp2_image->numcomps > 3)
     image->alpha_trait=BlendPixelTrait;
   if (jp2_image->icc_profile_buf != (unsigned char *) NULL)
@@ -1021,29 +1021,30 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
       sandbox->sb()->invoke_sandbox_function(
         opj_destroy_codec, tainted_codec
       );
-
       tainted_jp2_image = taint_img(jp2_image);
       sandbox->sb()->invoke_sandbox_function(
         opj_image_destroy, tainted_jp2_image
       );
-      jp2_codec = tainted_codec.UNSAFE_unverified();
-      jp2_image = tainted_jp2_image.UNSAFE_unverified();
       return(GetFirstImageInList(image));
     }
   status=SetImageExtent(image,image->columns,image->rows,exception);
+  printf("At line %d\n", __LINE__);
   if (status == MagickFalse)
-    {
-      sandbox->sb()->invoke_sandbox_function(
-        opj_destroy_codec, tainted_codec
-      );
-      tainted_jp2_image = taint_img(jp2_image);
-      sandbox->sb()->invoke_sandbox_function(
-        opj_image_destroy, tainted_jp2_image
-      );
-      jp2_codec = tainted_codec.UNSAFE_unverified();
-      jp2_image = tainted_jp2_image.UNSAFE_unverified();
-      return(DestroyImageList(image));
-    }
+  {
+    sandbox->sb()->invoke_sandbox_function(
+      opj_destroy_codec, tainted_codec
+    );
+    tainted_jp2_image = taint_img(jp2_image);
+    sandbox->sb()->invoke_sandbox_function(
+      opj_image_destroy, tainted_jp2_image
+    );
+    jp2_codec = tainted_codec.UNSAFE_unverified();
+    jp2_image = tainted_jp2_image.UNSAFE_unverified();
+    return(DestroyImageList(image));
+  }
+
+  printf("At line %d\n", __LINE__);
+
   for (y=0; y < (ssize_t) image->rows; y++)
   {
     Quantum
@@ -1136,6 +1137,9 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
     if (status == MagickFalse)
       break;
   }
+
+  printf("At line %d\n", __LINE__);
+
   /*
     Free resources.
   */
@@ -1500,8 +1504,7 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
   tainted<opj_cparameters_t*, rlbox_wasm2c_sandbox> tainted_params = sandbox->sb()->malloc_in_sandbox<opj_cparameters_t>();
   memcpy(tainted_params.unverified_safe_pointer_because(sizeof(opj_cparameters_t),
     "Memcpying to the params object"), parameters, sizeof(opj_cparameters_t));
-  sandbox->sb()->invoke_sandbox_function(opj_set_default_encoder_parameters, tainted_params);
-  parameters = tainted_params.UNSAFE_unverified();
+  sandbox->sb()->invoke_sandbox_function(opj_set_default_encoder_parameters, tainted_params); 
 
   // again, fine in a single threaded context.
   opj_cparameters_t* raw_tainted_params = tainted_params.UNSAFE_unverified();
@@ -1788,7 +1791,7 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
     parameters=(opj_cparameters_t *) RelinquishMagickMemory(parameters);
     ThrowWriterException(DelegateError,"UnableToEncodeImageFile");
   }
-
+  
   sandbox->sb()->invoke_sandbox_function(opj_stream_set_read_function, tainted_stream, sandbox->read_cb);
   sandbox->sb()->invoke_sandbox_function(opj_stream_set_write_function, tainted_stream, sandbox->write_cb);
   sandbox->sb()->invoke_sandbox_function(opj_stream_set_seek_function, tainted_stream, sandbox->seek_cb);
