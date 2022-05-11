@@ -619,15 +619,29 @@ static void JP2WarningHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
     message,"`%s'","OpenJP2");
 }
 
+static uintptr_t write_buffer__verifier(uintptr_t buffer) {
+  if (!(sandbox->is_in_sandbox(buffer))) {
+    sandbox->fail("write buffer");
+  }
+  return buffer;
+}
+
+static OPJ_SIZE_T write_length__verifier(OPJ_SIZE_T length) {
+  if (length > OPJ_J2K_STREAM_CHUNK_SIZE) {
+    sandbox->fail("write length");
+  }
+  return length;
+}
+
 static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2WriteHandler(
                                   rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
                                   tainted<void*, rlbox_wasm2c_sandbox> tainted_buf,
                                   tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> tainted_len,
                                   tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx)
 {
-  void* buffer = tainted_buf.UNSAFE_unverified();
-  OPJ_SIZE_T length = tainted_len.UNSAFE_unverified();
-  void* context = tainted_ctx.UNSAFE_unverified();
+  void* buffer = tainted_buf.copy_and_verify_address(write_length__verifier);
+  OPJ_SIZE_T length = tainted_len.copy_and_verify(write_length__verifier);
+  void* context = tainted_ctx.copy_and_verify_address(context_image__verifier);
 
   Image
     *image;
