@@ -699,6 +699,14 @@ static OPJ_BOOL jp2_status__set_decode_area__verifier(OPJ_BOOL status, tainted<o
   return status;
 }
 
+static const char *opj_version__verifier(const char *version) {
+  if (strcmp(version, OPJ_PACKAGE_VERSION) != 0) {
+    sandbox->fail("opj_version");
+  }
+
+  return version;
+}
+
 static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
 {
   /**
@@ -1293,7 +1301,8 @@ ModuleExport size_t RegisterJP2Image(void)
 #if defined(MAGICKCORE_LIBOPENJP2_DELEGATE)
 
   INIT_SANDBOX()
-  const char* vstr = sandbox->sb()->invoke_sandbox_function(opj_version).UNSAFE_unverified();
+  const char* vstr = sandbox->sb()->invoke_sandbox_function(opj_version)
+    .copy_and_verify(opj_version__verifier);
   (void) FormatLocaleString(version,MagickPathExtent,"%s",vstr);
 #endif
   entry=AcquireMagickInfo("JP2","JP2","JPEG-2000 File Format Syntax");
