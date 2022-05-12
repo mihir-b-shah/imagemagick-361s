@@ -96,10 +96,10 @@ using namespace rlbox;
 #define JP2_IMAGE__VERIFIER__TEST_VALUE 0
 
 // #define ERROR_MESSAGE__VERIFIER__TEST
-#define ERROR_MESSAGE__VERIFIER__TEST_VALUE 0
+#define ERROR_MESSAGE__VERIFIER__TEST_VALUE "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789x" // 301 characters + null
 
 // #define CLIENT_DATA__VERIFIER__TEST
-#define CLIENT_DATA__VERIFIER__TEST_VALUE 0
+#define CLIENT_DATA__VERIFIER__TEST_VALUE malloc(1)
 
 // #define READ_BUFFER__VERIFIER__TEST
 #define READ_BUFFER__VERIFIER__TEST_VALUE 0
@@ -126,7 +126,7 @@ using namespace rlbox;
 #define SKIP_OFFSET__VERIFIER__TEST_VALUE 0
 
 // #define WARNING_MESSAGE__VERIFIER__TEST
-#define WARNING_MESSAGE__VERIFIER__TEST_VALUE 0
+#define WARNING_MESSAGE__VERIFIER__TEST_VALUE "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789x" // 301 characters + null
 
 // #define WRITE_BUFFER__VERIFIER__TEST
 #define WRITE_BUFFER__VERIFIER__TEST_VALUE 0
@@ -166,9 +166,6 @@ using namespace rlbox;
 
 // #define JP2_CPARAMETERS__VERIFIER__TEST
 #define JP2_CPARAMETERS__VERIFIER__TEST_VALUE 0
-
-// #define JP2_BOOL__VERIFIER__TEST
-#define JP2_BOOL__VERIFIER__TEST_VALUE 0
 
 // #define JP2_STATUS__OPJ_START_COMPRESS__VERIFIER__TEST
 #define JP2_STATUS__OPJ_START_COMPRESS__VERIFIER__TEST_VALUE 0
@@ -520,8 +517,14 @@ jp2_comp__verifier(std::unique_ptr<tainted<opj_image_comp_t, rlbox_wasm2c_sandbo
 
   opj_image_comp_t* comp = (opj_image_comp_t*) malloc(sizeof(opj_image_comp_t));
 
-  comp->dx = safe_ptr.get()->dx.copy_and_verify([](OPJ_UINT32 dx){ return dx; });
-  comp->dy = safe_ptr.get()->dy.copy_and_verify([](OPJ_UINT32 dy){ return dy; });
+  comp->dx = safe_ptr.get()->dx.copy_and_verify([](OPJ_UINT32 dx){
+    if (dx == 0) sandbox->fail("dx");
+    return dx;
+  });
+  comp->dy = safe_ptr.get()->dy.copy_and_verify([](OPJ_UINT32 dy){
+    if (dy == 0) sandbox->fail("dy");
+    return dy;
+  });
   comp->w = safe_ptr.get()->w.copy_and_verify([](OPJ_UINT32 w){ return w; });
   comp->h = safe_ptr.get()->h.copy_and_verify([](OPJ_UINT32 h){ return h; });
   comp->x0 = safe_ptr.get()->x0.copy_and_verify([](OPJ_UINT32 x0){ return x0; });
@@ -605,7 +608,16 @@ jp2_image__verifier(std::unique_ptr<tainted<opj_image_t, rlbox_wasm2c_sandbox>> 
   });
 
   img->icc_profile_buf = (OPJ_BYTE*) malloc(sizeof(OPJ_BYTE)*(img->icc_profile_len));
-  memcpy(img->icc_profile_buf, safe_ptr.get()->icc_profile_buf.unverified_safe_pointer_because(img->icc_profile_len, "Copying icc profile buf"), img->icc_profile_len);
+  memcpy(
+    img->icc_profile_buf,
+    // safe_ptr.get()->icc_profile_buf.unverified_safe_pointer_because(img->icc_profile_len, "Copying icc profile buf"),
+    safe_ptr.get()->icc_profile_buf.copy_and_verify_address([img] (OPJ_BYTE *buffer) {
+      if (img->icc_profile_len == 0 && buffer != nullptr) {
+        sandbox->fail("img_profile_buf");
+      }
+    }),
+    img->icc_profile_len
+  );
 
   return img;
 }
