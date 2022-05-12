@@ -538,7 +538,7 @@ jp2_comp__verifier(std::unique_ptr<tainted<opj_image_comp_t, rlbox_wasm2c_sandbo
   comp->y0 = safe_ptr.get()->y0.copy_and_verify([](OPJ_UINT32 y0){ return y0; });
   comp->prec = safe_ptr.get()->prec.copy_and_verify([](OPJ_UINT32 prec){ return prec; });
   comp->bpp = safe_ptr.get()->bpp.copy_and_verify([](OPJ_UINT32 bpp){ return bpp; });
-  comp->sgnd = safe_ptr.get()->sgnd.copy_and_verify([](OPJ_UINT32 sgnd){
+  comp->sgnd = safe_ptr.get()->sgnd.copy_and_verify([](OPJ_UINT32 sgnd_){
     OPJ_UINT32 sgnd;
 #ifdef COMP_SGND__VERIFIER__TEST
     sgnd = COMP_SGND__VERIFIER__TEST_VALUE;
@@ -552,7 +552,7 @@ jp2_comp__verifier(std::unique_ptr<tainted<opj_image_comp_t, rlbox_wasm2c_sandbo
   comp->resno_decoded = safe_ptr.get()->resno_decoded.copy_and_verify([](OPJ_UINT32 r){ return r; });
   comp->factor = safe_ptr.get()->factor.copy_and_verify([](OPJ_UINT32 fac){ return fac; });
   comp->alpha = safe_ptr.get()->alpha.copy_and_verify([](OPJ_UINT32 alpha){ return alpha; });
-  comp->data = safe_ptr.get()->data.copy_and_verify_address([&comp](uintptr_t addr){
+  comp->data = safe_ptr.get()->data.copy_and_verify_address([&comp](uintptr_t addr_){
     uintptr_t addr;
 #ifdef COMP_DATA__VERIFIER__TEST
     addr = COMP_DATA__VERIFIER__TEST_VALUE;
@@ -636,10 +636,11 @@ jp2_image__verifier(std::unique_ptr<tainted<opj_image_t, rlbox_wasm2c_sandbox>> 
   memcpy(
     img->icc_profile_buf,
     // safe_ptr.get()->icc_profile_buf.unverified_safe_pointer_because(img->icc_profile_len, "Copying icc profile buf"),
-    safe_ptr.get()->icc_profile_buf.copy_and_verify_address([img] (OPJ_BYTE *buffer) {
-      if (img->icc_profile_len == 0 && buffer != nullptr) {
+    safe_ptr.get()->icc_profile_buf.copy_and_verify_address([img] (uintptr_t buffer) {
+      if (img->icc_profile_len == 0 && buffer != 0) {
         sandbox->fail("img_profile_buf");
       }
+      return (void*) buffer;
     }),
     img->icc_profile_len
   );
@@ -2204,8 +2205,8 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
 
   jp2_image->x0 = parameters->image_offset_x0.copy_and_verify(jp2_cparam_offset_xy__verifier);
   jp2_image->y0 = parameters->image_offset_y0.copy_and_verify(jp2_cparam_offset_xy__verifier);
-  jp2_image->x1 = (unsigned int) (2*parameters->image_offset_x0.copy_and_verify(jp2_cparam_offset_xy__verifier) + (image->columns-1)* (parameters->subsampling_dx.copy_and_verify(jp2_cparam_dxy__verifier)+1));
-  jp2_image->y1 = (unsigned int) (2*parameters->image_offset_y0.copy_and_verify(jp2_cparam_offset_xy__verifier) + (image->rows-1)* (parameters->subsampling_dx.copy_and_verify(jp2_cparam_dxy__verifier)+1));
+  jp2_image->x1 = (unsigned int) (2*parameters->image_offset_x0.copy_and_verify(jp2_cparam_offset_xy__verifier) + (image->columns-1)* (parameters->subsampling_dx.copy_and_verify(jp2_cparam_dxy__verifier))+1);
+  jp2_image->y1 = (unsigned int) (2*parameters->image_offset_y0.copy_and_verify(jp2_cparam_offset_xy__verifier) + (image->rows-1)* (parameters->subsampling_dx.copy_and_verify(jp2_cparam_dxy__verifier))+1);
   if ((image->depth == 12) &&
       ((image->columns == 2048) || (image->rows == 1080) ||
        (image->columns == 4096) || (image->rows == 2160)))
