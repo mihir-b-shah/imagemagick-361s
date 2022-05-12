@@ -23,6 +23,9 @@ int main()
    rlbox_sandbox<rlbox_wasm2c_sandbox> sandbox;
    sandbox.create_sandbox("./libopenjp2.so");
    auto seek_cb = sandbox.register_callback(JP2SeekHandler);
+
+   printf("sizeof: %d\n", sizeof(detail::rlbox_remove_wrapper_t<tainted<OPJ_OFF_T, rlbox_wasm2c_sandbox>>));
+
    sandbox.destroy_sandbox();
    return 0;
 }
