@@ -83,6 +83,103 @@
 
 using namespace rlbox;
 
+/**
+ * Verifier unit test definitions
+ */
+// #define JP2_COMP__VERIFIER__TEST
+#define JP2_COMP__VERIFIER__TEST_VALUE 0
+
+// #define JP2_IMG_NUMCOMPS__VERIFIER__TEST
+#define JP2_IMG_NUMCOMPS__VERIFIER__TEST_VALUE 0
+
+// #define JP2_IMAGE__VERIFIER__TEST
+#define JP2_IMAGE__VERIFIER__TEST_VALUE 0
+
+// #define ERROR_MESSAGE__VERIFIER__TEST
+#define ERROR_MESSAGE__VERIFIER__TEST_VALUE 0
+
+// #define CLIENT_DATA__VERIFIER__TEST
+#define CLIENT_DATA__VERIFIER__TEST_VALUE 0
+
+// #define READ_BUFFER__VERIFIER__TEST
+#define READ_BUFFER__VERIFIER__TEST_VALUE 0
+
+// #define READ_LENGTH__VERIFIER__TEST
+#define READ_LENGTH__VERIFIER__TEST_VALUE 0
+
+// #define GENERIC_IMAGE__VERIFIER__TEST
+#define GENERIC_IMAGE__VERIFIER__TEST_VALUE 0
+
+// #define CONTEXT_IMAGE__VERIFIER__TEST
+#define CONTEXT_IMAGE__VERIFIER__TEST_VALUE 0
+
+// #define SEEK_OFFSET__VERIFIER__TEST
+#define SEEK_OFFSET__VERIFIER__TEST_VALUE 0
+
+// #define GENERIC_EVENT_MANAGER__VERIFIER__TEST
+#define GENERIC_EVENT_MANAGER__VERIFIER__TEST_VALUE 0
+
+// #define CONTEXT_EVENT_MANAGER__VERIFIER__TEST
+#define CONTEXT_EVENT_MANAGER__VERIFIER__TEST_VALUE 0
+
+// #define SKIP_OFFSET__VERIFIER__TEST
+#define SKIP_OFFSET__VERIFIER__TEST_VALUE 0
+
+// #define WARNING_MESSAGE__VERIFIER__TEST
+#define WARNING_MESSAGE__VERIFIER__TEST_VALUE 0
+
+// #define WRITE_BUFFER__VERIFIER__TEST
+#define WRITE_BUFFER__VERIFIER__TEST_VALUE 0
+
+// #define WRITE_LENGTH__VERIFIER__TEST
+#define WRITE_LENGTH__VERIFIER__TEST_VALUE 0
+
+// #define J2K_STATE__VERIFIER__TEST
+#define J2K_STATE__VERIFIER__TEST_VALUE 0
+
+// #define JP2_STATUS__SET_DECODE_AREA__VERIFIER__TEST
+#define JP2_STATUS__SET_DECODE_AREA__VERIFIER__TEST_VALUE 0
+
+// #define OPJ_VERSION__TEST
+#define OPJ_VERSION__TEST_VALUE 0
+
+// #define SETUP_DECODER__STATUS__VERIFIER__TEST
+#define SETUP_DECODER__STATUS__VERIFIER__TEST_VALUE 0
+
+// #define READ_HEADER__STATUS__VERIFIER__TEST
+#define READ_HEADER__STATUS__VERIFIER__TEST_VALUE 0
+
+// #define JP2_STATUS__OPJ_GET_DECODED_TILE__VERIFIER__TEST
+#define JP2_STATUS__OPJ_GET_DECODED_TILE__VERIFIER__TEST_VALUE 0
+
+// #define JP2_STATUS__OPJ_DECODE__VERIFIER__TEST
+#define JP2_STATUS__OPJ_DECODE__VERIFIER__TEST_VALUE 0
+
+// #define JP2_STATUS__OPJ_END_DECOMPRESS__VERIFIER__TEST
+#define JP2_STATUS__OPJ_END_DECOMPRESS__VERIFIER__TEST_VALUE 0
+
+// #define JP2_CPARAM_DXY__VERIFIER__TEST
+#define JP2_CPARAM_DXY__VERIFIER__TEST_VALUE 0
+
+// #define JP2_CPARAM_OFFSET_DXY__VERIFIER__TEST
+#define JP2_CPARAM_OFFSET_DXY__VERIFIER__TEST_VALUE 0
+
+// #define JP2_CPARAMETERS__VERIFIER__TEST
+#define JP2_CPARAMETERS__VERIFIER__TEST_VALUE 0
+
+// #define JP2_BOOL__VERIFIER__TEST
+#define JP2_BOOL__VERIFIER__TEST_VALUE 0
+
+// #define JP2_STATUS__OPJ_START_COMPRESS__VERIFIER__TEST
+#define JP2_STATUS__OPJ_START_COMPRESS__VERIFIER__TEST_VALUE 0
+
+// #define JP2_STATUS__OPJ_ENCODE__VERIFIER__TEST
+#define JP2_STATUS__OPJ_ENCODE__VERIFIER__TEST_VALUE 0
+
+// #define JP2_STATUS__OPJ_END_COMPRESS__VERIFIER__TEST
+#define JP2_STATUS__OPJ_END_COMPRESS__VERIFIER__TEST_VALUE 0
+
+
 // reflection stuff allowing us to use fields in rlbox.
 #define sandbox_fields_reflection_openjp2_class_opj_image_t(f, g, ...) \
   f(OPJ_UINT32        , x0              , FIELD_NORMAL, ##__VA_ARGS__) g() \
@@ -412,8 +509,15 @@ taint_img(opj_image_t* raw_img)
 }
 
 static opj_image_comp_t*
-jp2_comp__verifier(std::unique_ptr<tainted<opj_image_comp_t, rlbox_wasm2c_sandbox>> safe_ptr)
+jp2_comp__verifier(std::unique_ptr<tainted<opj_image_comp_t, rlbox_wasm2c_sandbox>> safe_ptr_)
 {
+  std::unique_ptr<tainted<opj_image_comp_t, rlbox_wasm2c_sandbox>> safe_ptr;
+#ifdef JP2_COMP__VERIFIER__TEST
+  safe_ptr = JP2_COMP__VERIFIER__TEST_VALUE;
+#else
+  safe_ptr = safe_ptr_;
+#endif
+
   opj_image_comp_t* comp = (opj_image_comp_t*) malloc(sizeof(opj_image_comp_t));
 
   comp->dx = safe_ptr.get()->dx.copy_and_verify([](OPJ_UINT32 dx){ return dx; });
@@ -442,8 +546,15 @@ jp2_comp__verifier(std::unique_ptr<tainted<opj_image_comp_t, rlbox_wasm2c_sandbo
 }
 
 static int 
-jp2_img_numcomps__verifier(int nc)
+jp2_img_numcomps__verifier(int nc_)
 {
+  int nc;
+#ifdef JP2_IMG_NUMCOMPS__VERIFIER__TEST
+  nc = JP2_IMG_NUMCOMPS__VERIFIER__TEST_VALUE;
+#else
+  nc = nc_;
+#endif
+
   if (nc < 0) {
     sandbox->fail("numcomps");
   }
@@ -453,8 +564,15 @@ jp2_img_numcomps__verifier(int nc)
 #define MINIMUM_COLOR_SPACE -1
 #define MAXIMUM_COLOR_SPACE 5
 static opj_image_t*
-jp2_image__verifier(std::unique_ptr<tainted<opj_image_t, rlbox_wasm2c_sandbox>> safe_ptr)
+jp2_image__verifier(std::unique_ptr<tainted<opj_image_t, rlbox_wasm2c_sandbox>> safe_ptr_)
 {
+  std::unique_ptr<tainted<opj_image_t, rlbox_wasm2c_sandbox>> safe_ptr;
+#ifdef JP2_IMAGE__VERIFIER__TEST
+  safe_ptr = JP2_IMAGE__VERIFIER__TEST_VALUE;
+#else
+  safe_ptr = safe_ptr_;
+#endif
+
   opj_image_t* img = (opj_image_t*) malloc(sizeof(opj_image_t));
 
   img->x0 = safe_ptr.get()->x0.copy_and_verify([](OPJ_UINT32 x0){ return x0; });
@@ -527,7 +645,14 @@ untaint_img(tainted<opj_image_t*, rlbox_wasm2c_sandbox> tainted_jp2_image, opj_i
 */
 
 #define MAXIMUM_ERROR_MESSAGE_LENGTH 300
-static const char* error_message__verifier(std::unique_ptr<const char[]> message) {
+static const char* error_message__verifier(std::unique_ptr<const char[]> message_) {
+  std::unique_ptr<const char[]> message;
+#ifdef ERROR_MESSAGE__VERIFIER__TEST
+  message = ERROR_MESSAGE__VERIFIER__TEST_VALUE;
+#else
+  message = message_;
+#endif
+
   if (strlen(message.get()) > MAXIMUM_ERROR_MESSAGE_LENGTH) {
     sandbox->fail("error_message");
   }
@@ -538,7 +663,14 @@ static const char* error_message__verifier(std::unique_ptr<const char[]> message
 #define MAXIMUM_SEVERITY 799
 #define MAXIMUM_EXCEPTION_REASON_LENGTH 300
 #define MAXIMUM_EXCEPTION_DESCRIPTION_LENGTH 300
-static void* client_data__verifier(uintptr_t client_data) {
+static void* client_data__verifier(uintptr_t client_data_) {
+  uintptr_t client_data;
+#ifdef CLIENT_DATA__VERIFIER__TEST
+  client_data = CLIENT_DATA__VERIFIER__TEST_VALUE;
+#else
+  client_data = client_data_;
+#endif
+
   ExceptionInfo *exception = (ExceptionInfo *) client_data;
 
   if (
@@ -577,14 +709,28 @@ static void JP2ErrorHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
     message,"`%s'","OpenJP2");
 }
 
-static void* read_buffer__verifier(uintptr_t buffer) {
+static void* read_buffer__verifier(uintptr_t buffer_) {
+  uintptr_t buffer;
+#ifdef READ_BUFFER__VERIFIER__TEST
+  buffer = READ_BUFFER__VERIFIER__TEST_VALUE;
+#else
+  buffer = buffer_;
+#endif
+
   if (!(sandbox->is_in_sandbox(buffer))) {
     sandbox->fail("Read buffer");
   }
   return reinterpret_cast<void*>(buffer);
 }
 
-static OPJ_SIZE_T read_length__verifier(OPJ_SIZE_T length) {
+static OPJ_SIZE_T read_length__verifier(OPJ_SIZE_T length_) {
+  OPJ_SIZE_T length;
+#ifdef READ_LENGTH__VERIFIER__TEST
+  length = READ_LENGTH__VERIFIER__TEST_VALUE;
+#else
+  length = length_;
+#endif
+
   if (length > OPJ_J2K_STREAM_CHUNK_SIZE) {
     sandbox->fail("read length");
   }
@@ -593,14 +739,28 @@ static OPJ_SIZE_T read_length__verifier(OPJ_SIZE_T length) {
 
 #define MINIMUM_COMPOSITION 0
 #define MAXIMUM_COMPOSITION 81
-static Image* generic_image__verifier(Image* image) {
+static Image* generic_image__verifier(Image* image_) {
+  Image *image;
+#ifdef GENERIC_IMAGE__VERIFIER__TEST
+  image = GENERIC_IMAGE__VERIFIER__TEST_VALUE;
+#else
+  image = image_;
+#endif
+
   if (!(MINIMUM_COMPOSITION <= image->compose && image->compose <= MAXIMUM_COMPOSITION)) {
     sandbox->fail("image");
   }
   return image;
 }
 
-static uintptr_t context_image__verifier(uintptr_t context) {
+static uintptr_t context_image__verifier(uintptr_t context_) {
+  uintptr_t context;
+#ifdef CONTEXT_IMAGE__VERIFIER__TEST
+  context = CONTEXT_IMAGE__VERIFIER__TEST_VALUE;
+#else
+  context = context_;
+#endif
+
   if (!(sandbox->is_in_sandbox(context))) {
     sandbox->fail("read header context");
   }
@@ -634,7 +794,14 @@ static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2ReadHandler(
 }
 
 OPJ_OFF_T global__user_data_length = -1;
-static OPJ_OFF_T seek_offset__verifier(OPJ_OFF_T offset) {
+static OPJ_OFF_T seek_offset__verifier(OPJ_OFF_T offset_) {
+  OPJ_OFF_T offset;
+#ifdef SEEK_OFFSET__VERIFIER__TEST
+  offset = SEEK_OFFSET__VERIFIER__TEST_VALUE;
+#else
+  offset = offset_;
+#endif
+
   if (global__user_data_length != -1 && global__user_data_length != offset) {
     sandbox->fail("seek offset");
   }
@@ -642,7 +809,14 @@ static OPJ_OFF_T seek_offset__verifier(OPJ_OFF_T offset) {
 }
 
 /*
-static opj_event_mgr_t *generic_event_manager__verifier(opj_event_mgr_t *event_manager) {
+static opj_event_mgr_t *generic_event_manager__verifier(opj_event_mgr_t *event_manager_) {
+  opj_event_mgr_t event_manager;
+#ifdef GENERIC_EVENT_MANAGER__VERIFIER__TEST
+  event_manager = GENERIC_EVENT_MANAGER__VERIFIER__TEST_VALUE;
+#else
+  event_manager = event_manager_;
+#endif
+
   opj_msg_callback eh = event_manager->error_handler == NULL ? 0 : 1;
   opj_msg_callback wh = event_manager->warning_handler == NULL ? 0 : 1;
   opj_msg_callback ih = event_manager->info_handler == NULL ? 0 : 1;
@@ -660,6 +834,13 @@ static opj_event_mgr_t *generic_event_manager__verifier(opj_event_mgr_t *event_m
 }
 
 static uintptr_t context_event_manager__verifier(uintptr_t context) {
+  uintptr_t context;
+#ifdef CONTEXT_EVENT_MANAGER__VERIFIER__TEST
+  context = CONTEXT_EVENT_MANAGER__VERIFIER__TEST_VALUE;
+#else
+  context = context_;
+#endif
+
   if (!sandbox->is_in_sandbox(context)) {
     sandbox->fail("seek context");
   }
@@ -684,7 +865,14 @@ static tainted<OPJ_BOOL, rlbox_wasm2c_sandbox> JP2SeekHandler(
   return(SeekBlob(image,offset,SEEK_SET) < 0 ? OPJ_FALSE : OPJ_TRUE);
 }
 
-static OPJ_OFF_T skip_offset__verifier(OPJ_OFF_T offset) {
+static OPJ_OFF_T skip_offset__verifier(OPJ_OFF_T offset_) {
+  OPJ_OFF_T offset;
+#ifdef SKIP_OFFSET__VERIFIER__TEST
+  offset = SKIP_OFFSET__VERIFIER__TEST_VALUE;
+#else
+  offset = offset_;
+#endif
+
   if (global__user_data_length != -1 && global__user_data_length != offset) {
     sandbox->fail("skip offset");
   }
@@ -707,7 +895,14 @@ static tainted<OPJ_OFF_T, rlbox_wasm2c_sandbox> JP2SkipHandler(
 }
 
 #define MAXIMUM_WARNING_MESSAGE_LENGTH 300
-static const char* warning_message__verifier(std::unique_ptr<const char[]> message) {
+static const char* warning_message__verifier(std::unique_ptr<const char[]> message_) {
+  std::unique_ptr<const char[]> message;
+#ifdef WARNING_MESSAGE__VERIFIER__TEST
+  message = WARNING_MESSAGE__VERIFIER__TEST_VALUE;
+#else
+  message = message_;
+#endif
+
   if (strlen(message.get()) > MAXIMUM_WARNING_MESSAGE_LENGTH) {
     sandbox->fail("warning message");
   }
@@ -731,14 +926,28 @@ static void JP2WarningHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
     message,"`%s'","OpenJP2");
 }
 
-static void* write_buffer__verifier(uintptr_t buffer) {
+static void* write_buffer__verifier(uintptr_t buffer_) {
+  uintptr_t buffer;
+#ifdef WRITE_BUFFER__VERIFIER__TEST
+  buffer = WRITE_BUFFER__VERIFIER__TEST_VALUE;
+#else
+  buffer = buffer_;
+#endif
+
   if (!(sandbox->is_in_sandbox(buffer))) {
     sandbox->fail("write buffer");
   }
   return reinterpret_cast<void*>(buffer);
 }
 
-static OPJ_SIZE_T write_length__verifier(OPJ_SIZE_T length) {
+static OPJ_SIZE_T write_length__verifier(OPJ_SIZE_T length_) {
+  OPJ_SIZE_T length;
+#ifdef WRITE_LENGTH__VERIFIER__TEST
+  length = WRITE_LENGTH__VERIFIER__TEST_VALUE;
+#else
+  length = length_;
+#endif
+
   if (length > OPJ_J2K_STREAM_CHUNK_SIZE) {
     sandbox->fail("write length");
   }
@@ -766,12 +975,79 @@ static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2WriteHandler(
   return((OPJ_SIZE_T) count);
 }
 
-static OPJ_BOOL jp2_status__set_decode_area__verifier(OPJ_BOOL status, tainted<opj_codec_t*, rlbox_wasm2c_sandbox> codec) {
+/*
+static OPJ_UINT32 j2k_state__verifier(OPJ_UINT32 state_) {
+  OPJ_UINT32 state;
+#ifdef J2K_STATE__VERIFIER__TEST
+  state = J2K_STATE__VERIFIER__TEST_VALUE;
+#else
+  state = state_;
+#endif
+
+  if (!(
+    (state == J2K_STATE_NONE) ||
+    (state == J2K_STATE_MHSOC) ||
+    (state == J2K_STATE_MHSIZ) ||
+    (state == J2K_STATE_MH) ||
+    (state == J2K_STATE_TPHSOT) ||
+    (state == J2K_STATE_TPH) ||
+    (state == J2K_STATE_MT) ||
+    (state == J2K_STATE_NEOC) ||
+    (state == J2K_STATE_DATA) ||
+    (state == J2K_STATE_EOC) ||
+    (state == J2K_STATE_ERR) ||
+  )) {
+    sandbox->fail("j2k state");
+  }
+
+  return state;
+}
+*/
+
+static OPJ_BOOL jp2_status__set_decode_area__verifier(OPJ_BOOL status_, tainted<opj_codec_t*, rlbox_wasm2c_sandbox> codec) {
+  //! opj_codec_private_t not exported by openjpeg
+  // tainted<opj_codec_private_t *> tainted_codec_private = sandbox_reinterpret_cast<opj_codec_private_t *>(tainted_codec);
+  // tainted<opj_jp2_t *>p_jp2 = sandbox_reinterpret_cast<opj_jp2_t *>(tainted_codec_private->m_codec);
+  // tainted<opj_j2k_t *>p_j2k = p_jp2->j2k;
+  // OPJ_UINT32 tile_width = p_j2k->m_cp.tw.unverified_safe_because("required == 1 in following if condition");
+  // OPJ_UINT32 tile_height = p_j2k->m_cp.th.unverified_safe_because("required == 1 in following if condition");
+  // OPJ_UINT32 j2k_state = p_j2k->m_specific_param.m_decoder.m_state.copy_and_verify(j2k_state__verifier);
+
+  // if (status != OPJ_FALSE && ( // this condition implies status should be false
+  //   !tainted_codec_private ||
+  //   !tainted_codec_private->is_decompressor.unverified_safe_because("tainted boolean property access") ||
+  //   !(
+  //     (tile_width == 1 && tile_height == 1 && p_j2k->m_cp.tcps[0].m_data != nullptr) ||
+  //     !(j2k_state != J2K_STATE_TPHSOT)
+  //   )
+  //   // non-exhaustive, but further specificity is not O(1) and is excessively complex
+  // )) {
+  //   sandbox->fail("opj_set_decode_area status");
+  // }
+  OPJ_BOOL status;
+#ifdef JP2_STATUS__SET_DECODE_AREA__VERIFIER__TEST
+  status = JP2_STATUS__SET_DECODE_AREA__VERIFIER__TEST_VALUE;
+#else
+  status = status_;
+#endif
+  if (status != OPJ_FALSE && ( // this condition implies status should be false
+    !codec ||
+  )) {
+    sandbox->fail("opj_set_decode_area status");
+  }
+
   return status;
 }
 
 #define MAXIMUM_VERSION_LENGTH 1000
-static const char *opj_version__verifier(std::unique_ptr<const char[]> version) {
+static const char *opj_version__verifier(std::unique_ptr<const char[]> version_) {
+  std::unique_ptr<const char[]> version;
+#ifdef OPJ_VERSION__TEST
+  version = OPJ_VERSION__TEST_VALUE;
+#else
+  version = version_;
+#endif
+
   if (strlen(version.get()) > MAXIMUM_ERROR_MESSAGE_LENGTH) {
     sandbox->fail("version");
   }
@@ -885,7 +1161,14 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
 
   OPJ_BOOL setup_decoder__status = sandbox->sb()->invoke_sandbox_function(
     opj_setup_decoder, tainted_codec, tainted_params
-  ).copy_and_verify([tainted_codec, tainted_params] (OPJ_BOOL status) {
+  ).copy_and_verify([tainted_codec, tainted_params] (OPJ_BOOL status_) {
+    OPJ_BOOL status;
+#ifdef SETUP_DECODER__STATUS__VERIFIER__TEST
+    status = SETUP_DECODER__STATUS__VERIFIER__TEST_VALUE;
+#else
+    status = status_;
+#endif
+
     // This condition implies status should be false
     if (status != OPJ_FALSE && !tainted_params) {
       sandbox->fail("opj_setup_decoder status");
@@ -929,7 +1212,14 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
 
   OPJ_BOOL read_header__status = sandbox->sb()->invoke_sandbox_function(
     opj_read_header, tainted_stream, tainted_codec, tainted_jp2_image_ptr
-  ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status) {
+  ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status_) {
+    OPJ_BOOL status;
+#ifdef READ_HEADER__STATUS__VERIFIER__TEST
+    status = READ_HEADER__STATUS__VERIFIER__TEST_VALUE;
+#else
+    status = status_;
+#endif
+
     if (status != OPJ_FALSE && !tainted_stream) {
       sandbox->fail("opj_setup_decoder status");
     }
@@ -1021,7 +1311,14 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
     jp2_status = sandbox->sb()->invoke_sandbox_function(
       opj_get_decoded_tile, tainted_codec, tainted_stream, tainted_jp2_image,
       (unsigned int) image_info->scene - 1
-    ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status) {
+    ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status_) {
+      OPJ_BOOL status;
+#ifdef JP2_STATUS__OPJ_GET_DECODED_TILE__VERIFIER__TEST
+      status = JP2_STATUS__OPJ_GET_DECODED_TILE__VERIFIER__TEST_VALUE;
+#else
+      status = status_;
+#endif
+
       if (status != OPJ_FALSE && !tainted_stream) {
         sandbox->fail("opj_get_decoded_tile status");
       }
@@ -1034,7 +1331,14 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
       printf("At line %d\n", __LINE__);
       jp2_status = sandbox->sb()->invoke_sandbox_function(
         opj_decode, tainted_codec, tainted_stream, tainted_jp2_image
-      ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status) {
+      ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status_) {
+        OPJ_BOOL status;
+#ifdef JP2_STATUS__OPJ_DECODE__VERIFIER__TEST
+        status = JP2_STATUS__OPJ_DECODE__VERIFIER__TEST_VALUE;
+#else
+        status = status_;
+#endif
+
         if (status != OPJ_FALSE && !tainted_stream) {
           sandbox->fail("opj_decode status");
         }
@@ -1044,7 +1348,14 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
       if (jp2_status != OPJ_FALSE) {
         jp2_status = sandbox->sb()->invoke_sandbox_function(
           opj_end_decompress, tainted_codec, tainted_stream
-        ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status) {
+        ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status_) {
+          OPJ_BOOL status;
+#ifdef JP2_STATUS__OPJ_END_DECOMPRESS__VERIFIER__TEST
+          status = JP2_STATUS__OPJ_END_DECOMPRESS__VERIFIER__TEST_VALUE;
+#else
+          status = status_;
+#endif
+
           if (status != OPJ_FALSE && !tainted_stream) {
             sandbox->fail("opj_end_decompress status");
           }
@@ -1539,18 +1850,39 @@ static inline int CalculateNumResolutions(size_t width,size_t height)
   return(i);
 }
 
-static int jp2_cparam_dxy__verifier(int dv) {
+static int jp2_cparam_dxy__verifier(int dv_) {
+  int dv;
+#ifdef JP2_CPARAM_DXY__VERIFIER__TEST
+  dv = JP2_CPARAM_DXY__VERIFIER__TEST_VALUE;
+#else
+  dv = dv_;
+#endif
+
   if (dv < 0) {
     sandbox->fail("subsampling_d[xy]");
   }
   return dv;
 }
 
-static int jp2_cparam_offset_xy__verifier(int offset) {
+static int jp2_cparam_offset_xy__verifier(int offset_) {
+  int offset;
+#ifdef JP2_CPARAM_OFFSET_DXY__VERIFIER__TEST
+  offset = JP2_CPARAM_OFFSET_DXY__VERIFIER__TEST_VALUE;
+#else
+  offset = offset_;
+#endif
+
   return offset;
 }
 
-static opj_cparameters_t* jp2_cparameters__verifier(opj_cparameters_t* params){
+static opj_cparameters_t* jp2_cparameters__verifier(opj_cparameters_t* params_) {
+  int params;
+#ifdef JP2_CPARAMETERS__VERIFIER__TEST
+  params = JP2_CPARAMETERS__VERIFIER__TEST_VALUE;
+#else
+  params = params_;
+#endif
+
   bool fine = params->numpocs < 32 &&
               params->tcp_numlayers < 100 &&
                 (params->prog_order == OPJ_PROG_UNKNOWN || params->prog_order == OPJ_LRCP ||
@@ -1564,8 +1896,14 @@ static opj_cparameters_t* jp2_cparameters__verifier(opj_cparameters_t* params){
   return params;
 }
 
-static OPJ_BOOL jp2_bool__verifier(OPJ_BOOL b)
-{
+static OPJ_BOOL jp2_bool__verifier(OPJ_BOOL b_) {
+  int b;
+#ifdef JP2_BOOL__VERIFIER__TEST
+  b = JP2_BOOL__VERIFIER__TEST_VALUE;
+#else
+  b = b_;
+#endif
+
   if (b != 0 && b != 1) {
     sandbox->fail("boolean");
   }
@@ -1938,7 +2276,14 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
 
   jp2_status = sandbox->sb()->invoke_sandbox_function(
     opj_start_compress, tainted_codec, jp2_image, tainted_stream
-  ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status) {
+  ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status_) {
+    OPJ_BOOL status;
+#ifdef JP2_STATUS__OPJ_START_COMPRESS__VERIFIER__TEST
+    status = JP2_STATUS__OPJ_START_COMPRESS__VERIFIER__TEST_VALUE;
+#else
+    status = status_;
+#endif
+
     if (status != OPJ_FALSE && !tainted_stream) {
       sandbox->fail("opj_start_compress status");
     }
@@ -1947,7 +2292,14 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
   
   OPJ_BOOL encode_status = sandbox->sb()->invoke_sandbox_function(
     opj_encode, tainted_codec, tainted_stream
-  ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status) {
+  ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status_) {
+    OPJ_BOOL status;
+#ifdef JP2_STATUS__OPJ_ENCODE__VERIFIER__TEST
+    status = JP2_STATUS__OPJ_ENCODE__VERIFIER__TEST_VALUE;
+#else
+    status = status_;
+#endif
+
     if (status != OPJ_FALSE && !tainted_stream) {
       sandbox->fail("opj_encode status");
     }
@@ -1956,7 +2308,14 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
 
   OPJ_BOOL end_compress_status = sandbox->sb()->invoke_sandbox_function(
     opj_end_compress, tainted_codec, tainted_stream
-  ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status) {
+  ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status_) {
+    OPJ_BOOL status;
+#ifdef JP2_STATUS__OPJ_END_COMPRESS__VERIFIER__TEST
+    status = JP2_STATUS__OPJ_END_COMPRESS__VERIFIER__TEST_VALUE;
+#else
+    status = status_;
+#endif
+
     if (status != OPJ_FALSE && !tainted_stream) {
       sandbox->fail("opj_end_compress status");
     }
