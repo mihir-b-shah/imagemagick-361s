@@ -480,7 +480,7 @@ jp2_image__verifier(std::unique_ptr<tainted<opj_image_t, rlbox_wasm2c_sandbox>> 
   }
 
   // TODO: fix this
-  assert(safe_ptr->icc_profile_len.UNSAFE_unverified() == 0);
+  assert(safe_ptr->icc_profile_len.unverified_safe_because("single use integer for assert") == 0);
   img->icc_profile_len = 0;
   img->icc_profile_buf = NULL;
 
@@ -731,14 +731,28 @@ static void JP2WarningHandler(rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
     message,"`%s'","OpenJP2");
 }
 
+static void* write_buffer__verifier(uintptr_t buffer) {
+  if (!(sandbox->is_in_sandbox(buffer))) {
+    sandbox->fail("write buffer");
+  }
+  return reinterpret_cast<void*>(buffer);
+}
+
+static OPJ_SIZE_T write_length__verifier(OPJ_SIZE_T length) {
+  if (length > OPJ_J2K_STREAM_CHUNK_SIZE) {
+    sandbox->fail("write length");
+  }
+  return length;
+}
+
 static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2WriteHandler(
                                   rlbox_sandbox<rlbox_wasm2c_sandbox>& _,
                                   tainted<void*, rlbox_wasm2c_sandbox> tainted_buf,
                                   tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> tainted_len,
                                   tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx)
 {
-  void* buffer = tainted_buf.UNSAFE_unverified();
-  OPJ_SIZE_T length = tainted_len.UNSAFE_unverified();
+  void* buffer = tainted_buf.copy_and_verify_address(write_buffer__verifier);
+  OPJ_SIZE_T length = tainted_len.copy_and_verify(write_length__verifier);
   void* context = sandbox->sb()->lookup_app_ptr(tainted_ctx);
 
   Image
@@ -750,6 +764,18 @@ static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2WriteHandler(
   image=(Image *) context;
   count=WriteBlob(image,(ssize_t) length,(unsigned char *) buffer);
   return((OPJ_SIZE_T) count);
+}
+
+static OPJ_BOOL jp2_status__set_decode_area__verifier(OPJ_BOOL status, tainted<opj_codec_t*, rlbox_wasm2c_sandbox> codec) {
+  return status;
+}
+
+#define MAXIMUM_VERSION_LENGTH 1000
+static const char *opj_version__verifier(std::unique_ptr<const char[]> version) {
+  if (strlen(version.get()) > MAXIMUM_ERROR_MESSAGE_LENGTH) {
+    sandbox->fail("version");
+  }
+  return version.release();
 }
 
 static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
@@ -775,17 +801,11 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
   MagickBooleanType
     status;
 
-  opj_codec_t
-    *jp2_codec;
-
   opj_dparameters_t
     parameters;
 
   opj_image_t
     *jp2_image;
-
-  opj_stream_t
-    *jp2_stream;
 
   ssize_t
     i;
@@ -827,7 +847,6 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
 
   INIT_SANDBOX()
   if (LocaleCompare(image_info->magick,"JPT") == 0) {
-    //jp2_codec=opj_create_decompress(OPJ_CODEC_JPT);
     tainted_codec = sandbox->sb()->invoke_sandbox_function(opj_create_decompress, OPJ_CODEC_JPT);
   } else if (IsJ2K(sans,4) != MagickFalse) {
     tainted_codec = sandbox->sb()->invoke_sandbox_function(opj_create_decompress, OPJ_CODEC_J2K);
@@ -864,16 +883,22 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
   if (option != (const char *) NULL)
     parameters.cp_layer=StringToInteger(option);
 
-  tainted<OPJ_BOOL, rlbox_wasm2c_sandbox> tainted_dec_cond = sandbox->sb()->invoke_sandbox_function(opj_setup_decoder, tainted_codec, tainted_params);
+  OPJ_BOOL setup_decoder__status = sandbox->sb()->invoke_sandbox_function(
+    opj_setup_decoder, tainted_codec, tainted_params
+  ).copy_and_verify([tainted_codec, tainted_params] (OPJ_BOOL status) {
+    // This condition implies status should be false
+    if (status != OPJ_FALSE && !tainted_params) {
+      sandbox->fail("opj_setup_decoder status");
+    }
+    return status;
+  });
 
-  if (tainted_dec_cond.UNSAFE_unverified() == 0)
-  {
+  if (setup_decoder__status == 0) {
     sandbox->sb()->invoke_sandbox_function(opj_destroy_codec, tainted_codec);
     ThrowReaderException(DelegateError,"UnableToManageJP2Stream");
   }
 
   tainted<opj_stream_t*, rlbox_wasm2c_sandbox> tainted_stream = sandbox->sb()->invoke_sandbox_function(opj_stream_create, OPJ_J2K_STREAM_CHUNK_SIZE, 1);
-  jp2_stream = tainted_stream.UNSAFE_unverified();
 
   sandbox->sb()->invoke_sandbox_function(
     opj_stream_set_read_function, tainted_stream, sandbox->read_cb
@@ -901,10 +926,17 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
   );
 
   tainted<opj_image_t**, rlbox_wasm2c_sandbox> tainted_jp2_image_ptr = sandbox->sb()->malloc_in_sandbox<opj_image_t*>();
-  tainted<OPJ_BOOL, rlbox_wasm2c_sandbox> tainted_read_cond = sandbox->sb()->invoke_sandbox_function(
+
+  OPJ_BOOL read_header__status = sandbox->sb()->invoke_sandbox_function(
     opj_read_header, tainted_stream, tainted_codec, tainted_jp2_image_ptr
-  );
-  if (tainted_read_cond.UNSAFE_unverified() == 0)
+  ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status) {
+    if (status != OPJ_FALSE && !tainted_stream) {
+      sandbox->fail("opj_setup_decoder status");
+    }
+    return status;
+  });
+
+  if (read_header__status == 0)
   {
     sandbox->sb()->invoke_sandbox_function(
       opj_stream_destroy, tainted_stream
@@ -953,7 +985,9 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
         (OPJ_INT32) image->extract_info.y,
         (OPJ_INT32) (image->extract_info.x + (ssize_t) image->columns),
         (OPJ_INT32) (image->extract_info.y + (ssize_t) image->rows)
-      ).UNSAFE_unverified();
+      ).copy_and_verify([tainted_codec] (OPJ_BOOL status) {
+        return jp2_status__set_decode_area__verifier(status, tainted_codec);
+      });
 
     } else {
       printf("At line %d\n", __LINE__);
@@ -961,7 +995,9 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
       jp2_status = sandbox->sb()->invoke_sandbox_function(
         opj_set_decode_area, tainted_codec, tainted_jp2_image, 0, 0,
         comp0->w, comp0->h
-      ).UNSAFE_unverified();
+      ).copy_and_verify([tainted_codec] (OPJ_BOOL status) {
+        return jp2_status__set_decode_area__verifier(status, tainted_codec);
+      });
     }
 
     if (jp2_status == OPJ_FALSE)
@@ -985,7 +1021,12 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
     jp2_status = sandbox->sb()->invoke_sandbox_function(
       opj_get_decoded_tile, tainted_codec, tainted_stream, tainted_jp2_image,
       (unsigned int) image_info->scene - 1
-    ).UNSAFE_unverified();
+    ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status) {
+      if (status != OPJ_FALSE && !tainted_stream) {
+        sandbox->fail("opj_get_decoded_tile status");
+      }
+      return status;
+    });
   }
   else
     if (image->ping == MagickFalse)
@@ -993,12 +1034,22 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
       printf("At line %d\n", __LINE__);
       jp2_status = sandbox->sb()->invoke_sandbox_function(
         opj_decode, tainted_codec, tainted_stream, tainted_jp2_image
-      ).UNSAFE_unverified();
+      ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status) {
+        if (status != OPJ_FALSE && !tainted_stream) {
+          sandbox->fail("opj_decode status");
+        }
+        return status;
+      });
   
       if (jp2_status != OPJ_FALSE) {
         jp2_status = sandbox->sb()->invoke_sandbox_function(
           opj_end_decompress, tainted_codec, tainted_stream
-        ).UNSAFE_unverified();
+        ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status) {
+          if (status != OPJ_FALSE && !tainted_stream) {
+            sandbox->fail("opj_end_decompress status");
+          }
+          return status;
+        });
       }
     }
   if (jp2_status == OPJ_FALSE)
@@ -1018,7 +1069,6 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
   sandbox->sb()->invoke_sandbox_function(
     opj_stream_destroy, tainted_stream
   );
-  jp2_stream = tainted_stream.UNSAFE_unverified();
 
   comp0 = NULL;
   if (tainted_jp2_image->numcomps.copy_and_verify(jp2_img_numcomps__verifier) > 0) {
@@ -1260,7 +1310,9 @@ ModuleExport size_t RegisterJP2Image(void)
 #if defined(MAGICKCORE_LIBOPENJP2_DELEGATE)
 
   INIT_SANDBOX()
-  const char* vstr = sandbox->sb()->invoke_sandbox_function(opj_version).UNSAFE_unverified();
+  const char* vstr = sandbox->sb()->invoke_sandbox_function(opj_version).copy_and_verify_string([](std::unique_ptr<const char[]> val){
+    return opj_version__verifier(std::move(val));
+  });
   (void) FormatLocaleString(version,MagickPathExtent,"%s",vstr);
 #endif
   entry=AcquireMagickInfo("JP2","JP2","JPEG-2000 File Format Syntax");
@@ -1515,8 +1567,7 @@ static opj_cparameters_t* jp2_cparameters__verifier(opj_cparameters_t* params){
 static OPJ_BOOL jp2_bool__verifier(OPJ_BOOL b)
 {
   if (b != 0 && b != 1) {
-    printf("ERROR: INVALID boolean CAUGHT\n");
-    exit(EXIT_FAILURE);
+    sandbox->fail("boolean");
   }
   return b;
 }
@@ -1534,9 +1585,6 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
   MagickBooleanType
     status;
 
-  opj_codec_t
-    *jp2_codec;
-
   OPJ_COLOR_SPACE
     jp2_colorspace;
 
@@ -1548,9 +1596,6 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
 
   opj_image_t
     *jp2_image__raw;
-
-  opj_stream_t
-    *jp2_stream;
 
   ssize_t
     i;
@@ -1729,7 +1774,7 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
       if (image->alpha_trait != UndefinedPixelTrait)
         channels++;
     }
-  parameters->tcp_mct=channels == 3;
+  parameters->tcp_mct= (channels == 3);
   memset(jp2_info,0,sizeof(jp2_info));
   for (i=0; i < (ssize_t) channels; i++)
   {
@@ -1757,7 +1802,7 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
   // TODO: need to use untaint and taint img here.
   tainted<opj_image_t*, rlbox_wasm2c_sandbox> jp2_image = sandbox->sb()->invoke_sandbox_function(opj_image_create, (OPJ_UINT32) channels, tainted_info, jp2_colorspace);
 
-  if (jp2_image.copy_and_verify_address([](uintptr_t p){ return p; }) != NULL)
+  if (jp2_image == nullptr)
   {
     ThrowWriterException(DelegateError,"UnableToEncodeImageFile");
   }
@@ -1870,9 +1915,8 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
   sandbox->sb()->invoke_sandbox_function(opj_setup_encoder, tainted_codec, parameters, jp2_image);
 
   tainted<opj_stream_t*, rlbox_wasm2c_sandbox> tainted_stream = sandbox->sb()->invoke_sandbox_function(opj_stream_create, OPJ_J2K_STREAM_CHUNK_SIZE, OPJ_FALSE);
-  jp2_stream = tainted_stream.UNSAFE_unverified();
 
-  if (jp2_stream == (opj_stream_t *) NULL)
+  if (tainted_stream == nullptr) 
   {
     sandbox->sb()->invoke_sandbox_function(opj_destroy_codec, tainted_codec);
     sandbox->sb()->invoke_sandbox_function(opj_image_destroy, jp2_image);
@@ -1892,12 +1936,37 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
 
   sandbox->sb()->invoke_sandbox_function(opj_stream_set_user_data, tainted_stream, tainted_image, tainted_free_func);
 
-  jp2_status = sandbox->sb()->invoke_sandbox_function(opj_start_compress, tainted_codec, jp2_image, tainted_stream).copy_and_verify(jp2_bool__verifier);
+  jp2_status = sandbox->sb()->invoke_sandbox_function(
+    opj_start_compress, tainted_codec, jp2_image, tainted_stream
+  ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status) {
+    if (status != OPJ_FALSE && !tainted_stream) {
+      sandbox->fail("opj_start_compress status");
+    }
+    return status;
+  });
+  
+  OPJ_BOOL encode_status = sandbox->sb()->invoke_sandbox_function(
+    opj_encode, tainted_codec, tainted_stream
+  ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status) {
+    if (status != OPJ_FALSE && !tainted_stream) {
+      sandbox->fail("opj_encode status");
+    }
+    return status;
+  });
+
+  OPJ_BOOL end_compress_status = sandbox->sb()->invoke_sandbox_function(
+    opj_end_compress, tainted_codec, tainted_stream
+  ).copy_and_verify([tainted_codec, tainted_stream] (OPJ_BOOL status) {
+    if (status != OPJ_FALSE && !tainted_stream) {
+      sandbox->fail("opj_end_compress status");
+    }
+    return status;
+  });
+
+
   if ((jp2_status == 0) || 
-      (sandbox->sb()->invoke_sandbox_function(
-        opj_encode, tainted_codec, tainted_stream).copy_and_verify(jp2_bool__verifier) == 0) ||
-      (sandbox->sb()->invoke_sandbox_function(
-        opj_end_compress, tainted_codec, tainted_stream).copy_and_verify(jp2_bool__verifier) == 0))
+      (encode_status == 0) ||
+      (end_compress_status == 0))
     {
       sandbox->sb()->invoke_sandbox_function(opj_stream_destroy, tainted_stream);
       sandbox->sb()->invoke_sandbox_function(opj_destroy_codec, tainted_codec);
