@@ -674,6 +674,7 @@ static tainted<OPJ_BOOL, rlbox_wasm2c_sandbox> JP2SeekHandler(
                                tainted<OPJ_OFF_T, rlbox_wasm2c_sandbox> tainted_offs,
                                tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx)
 {
+  printf("Hit seek handler.\n");
   OPJ_OFF_T offset = tainted_offs.copy_and_verify(seek_offset__verifier);
   void* context = sandbox->sb()->lookup_app_ptr(tainted_ctx);
 
@@ -846,6 +847,7 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
   tainted<opj_codec_t*, rlbox_wasm2c_sandbox> tainted_codec;
 
   INIT_SANDBOX()
+
   if (LocaleCompare(image_info->magick,"JPT") == 0) {
     tainted_codec = sandbox->sb()->invoke_sandbox_function(opj_create_decompress, OPJ_CODEC_JPT);
   } else if (IsJ2K(sans,4) != MagickFalse) {
