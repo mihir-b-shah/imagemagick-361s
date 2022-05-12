@@ -833,7 +833,7 @@ static opj_event_mgr_t *generic_event_manager__verifier(opj_event_mgr_t *event_m
   return event_manager;
 }
 
-static uintptr_t context_event_manager__verifier(uintptr_t context) {
+static uintptr_t context_event_manager__verifier(uintptr_t context_) {
   uintptr_t context;
 #ifdef CONTEXT_EVENT_MANAGER__VERIFIER__TEST
   context = CONTEXT_EVENT_MANAGER__VERIFIER__TEST_VALUE;
