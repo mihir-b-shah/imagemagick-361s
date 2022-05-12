@@ -515,7 +515,7 @@ jp2_comp__verifier(std::unique_ptr<tainted<opj_image_comp_t, rlbox_wasm2c_sandbo
 #ifdef JP2_COMP__VERIFIER__TEST
   safe_ptr = JP2_COMP__VERIFIER__TEST_VALUE;
 #else
-  safe_ptr = safe_ptr_;
+  safe_ptr = std::move(safe_ptr_);
 #endif
 
   opj_image_comp_t* comp = (opj_image_comp_t*) malloc(sizeof(opj_image_comp_t));
@@ -570,7 +570,7 @@ jp2_image__verifier(std::unique_ptr<tainted<opj_image_t, rlbox_wasm2c_sandbox>> 
 #ifdef JP2_IMAGE__VERIFIER__TEST
   safe_ptr = JP2_IMAGE__VERIFIER__TEST_VALUE;
 #else
-  safe_ptr = safe_ptr_;
+  safe_ptr = std::move(safe_ptr_);
 #endif
 
   opj_image_t* img = (opj_image_t*) malloc(sizeof(opj_image_t));
@@ -597,10 +597,15 @@ jp2_image__verifier(std::unique_ptr<tainted<opj_image_t, rlbox_wasm2c_sandbox>> 
       sizeof(opj_image_comp_t));
   }
 
-  // TODO: fix this
-  assert(safe_ptr->icc_profile_len.unverified_safe_because("single use integer for assert") == 0);
-  img->icc_profile_len = 0;
-  img->icc_profile_buf = NULL;
+  img->icc_profile_len = safe_ptr.get()->icc_profile_len.copy_and_verify([](OPJ_UINT32 icclen){
+    if (icclen < 0) {
+      sandbox->fail("icc_profile_len");
+    }
+    return icclen;
+  });
+
+  img->icc_profile_buf = (OPJ_BYTE*) malloc(sizeof(OPJ_BYTE)*(img->icc_profile_len));
+  memcpy(img->icc_profile_buf, safe_ptr.get()->icc_profile_buf.unverified_safe_pointer_because(img->icc_profile_len, "Copying icc profile buf"), img->icc_profile_len);
 
   return img;
 }
@@ -650,7 +655,7 @@ static const char* error_message__verifier(std::unique_ptr<const char[]> message
 #ifdef ERROR_MESSAGE__VERIFIER__TEST
   message = ERROR_MESSAGE__VERIFIER__TEST_VALUE;
 #else
-  message = message_;
+  message = std::move(message_);
 #endif
 
   if (strlen(message.get()) > MAXIMUM_ERROR_MESSAGE_LENGTH) {
@@ -863,7 +868,9 @@ static tainted<OPJ_BOOL, rlbox_wasm2c_sandbox> JP2SeekHandler(
     *image;
 
   image = reinterpret_cast<Image *>(context);
-  return(SeekBlob(image,offset,SEEK_SET) < 0 ? OPJ_FALSE : OPJ_TRUE);
+  auto ret = (SeekBlob(image,offset,SEEK_SET) < 0 ? OPJ_FALSE : OPJ_TRUE);
+  printf("Leaving seek handler.\n");
+  return ret;
 }
 
 static OPJ_OFF_T skip_offset__verifier(OPJ_OFF_T offset_) {
@@ -901,7 +908,7 @@ static const char* warning_message__verifier(std::unique_ptr<const char[]> messa
 #ifdef WARNING_MESSAGE__VERIFIER__TEST
   message = WARNING_MESSAGE__VERIFIER__TEST_VALUE;
 #else
-  message = message_;
+  message = std::move(message_);
 #endif
 
   if (strlen(message.get()) > MAXIMUM_WARNING_MESSAGE_LENGTH) {
@@ -1032,7 +1039,7 @@ static OPJ_BOOL jp2_status__set_decode_area__verifier(OPJ_BOOL status_, tainted<
   status = status_;
 #endif
   if (status != OPJ_FALSE && ( // this condition implies status should be false
-    !codec ||
+    !codec
   )) {
     sandbox->fail("opj_set_decode_area status");
   }
@@ -1046,7 +1053,7 @@ static const char *opj_version__verifier(std::unique_ptr<const char[]> version_)
 #ifdef OPJ_VERSION__TEST
   version = OPJ_VERSION__TEST_VALUE;
 #else
-  version = version_;
+  version = std::move(version_);
 #endif
 
   if (strlen(version.get()) > MAXIMUM_ERROR_MESSAGE_LENGTH) {
@@ -1348,6 +1355,7 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
         return status;
       });
   
+      printf("At line %d\n", __LINE__);
       if (jp2_status != OPJ_FALSE) {
         jp2_status = sandbox->sb()->invoke_sandbox_function(
           opj_end_decompress, tainted_codec, tainted_stream
@@ -1380,6 +1388,7 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
     );
     ThrowReaderException(DelegateError,"UnableToDecodeImageFile");
   }
+  printf("At line %d\n", __LINE__);
   sandbox->sb()->invoke_sandbox_function(
     opj_stream_destroy, tainted_stream
   );
@@ -1879,7 +1888,7 @@ static int jp2_cparam_offset_xy__verifier(int offset_) {
 }
 
 static opj_cparameters_t* jp2_cparameters__verifier(opj_cparameters_t* params_) {
-  int params;
+  opj_cparameters_t* params;
 #ifdef JP2_CPARAMETERS__VERIFIER__TEST
   params = JP2_CPARAMETERS__VERIFIER__TEST_VALUE;
 #else
