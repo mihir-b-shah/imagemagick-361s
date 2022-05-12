@@ -535,6 +535,7 @@ jp2_comp__verifier(std::unique_ptr<tainted<opj_image_comp_t, rlbox_wasm2c_sandbo
   comp->data = safe_ptr.get()->data.copy_and_verify_address([&comp](uintptr_t addr){
     if (addr != 0) {
       OPJ_INT32* data = (OPJ_INT32*) malloc(sizeof(OPJ_INT32)*(comp->w)*(comp->h));
+      printf("Copying %lu bytes at line %d\n", sizeof(OPJ_INT32)*(comp->w)*(comp->h), __LINE__);
       memcpy(data, (OPJ_INT32*) addr, sizeof(OPJ_INT32)*(comp->w)*(comp->h)); 
       return data;
     } else {
@@ -1138,6 +1139,11 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
   } else {
     tainted_codec = sandbox->sb()->invoke_sandbox_function(opj_create_decompress, OPJ_CODEC_JP2);
   }
+  
+  tainted_codec.copy_and_verify_address([](uintptr_t p){
+    void** vp = (void**) p;
+    printf("codec: %p\n", *vp);
+  });
   
   /* XXX: AT THIS POINT, invalid:
      jp2_codec (tainted_codec)
@@ -2172,9 +2178,15 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
   else
    if ((channels == 2) && (jp2_colorspace == OPJ_CLRSPC_GRAY))
      jp2_image->comps[1].alpha=1;
+
   /*
     Convert to JP2 pixels.
   */
+  opj_image_comp_t** channel_infos = (opj_image_comp_t**) calloc(channels, sizeof(opj_image_comp_t*));
+  for (int i = 0; i<channels; ++i) {
+    channel_infos[i] = (jp2_image->comps + i).copy_and_verify(jp2_comp__verifier);
+  }
+
   for (y=0; y < (ssize_t) image->rows; y++)
   {
     const Quantum
@@ -2190,7 +2202,7 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
     {
       for (i=0; i < (ssize_t) channels; i++)
       {
-        opj_image_comp_t* comp_i = (jp2_image->comps + i).copy_and_verify(jp2_comp__verifier);
+        opj_image_comp_t* comp_i = channel_infos[i];
 
         double
           scale;
@@ -2237,9 +2249,6 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
             break;
           }
         }
-
-        // TODO: free
-        comp_i = NULL;
       }
       p+=GetPixelChannels(image);
     }
@@ -2247,6 +2256,14 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
       image->rows);
     if (status == MagickFalse)
       break;
+  }
+
+  // TODO: free comp_i's
+  for (int i = 0; i<channels; ++i) {
+    // copy back data- only field that changes in this loop.
+    opj_image_comp_t* comp = channel_infos[i];
+    size_t bytes_to_copy = sizeof(OPJ_INT32)*(comp->w)*(comp->h);
+    memcpy(jp2_image->comps[i].data.unverified_safe_pointer_because(bytes_to_copy, "Copying data bytes to comp"), comp->data, bytes_to_copy); 
   }
   
   tainted<opj_codec_t*, rlbox_wasm2c_sandbox> tainted_codec;
@@ -2257,6 +2274,11 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
   } else {
     tainted_codec = sandbox->sb()->invoke_sandbox_function(opj_create_compress, OPJ_CODEC_JP2);
   }
+  
+  tainted_codec.copy_and_verify_address([](uintptr_t p){
+    void** vp = (void**) p;
+    printf("codec: %p\n", *vp);
+  });
   
   app_pointer<void*, rlbox_wasm2c_sandbox> excp = sandbox->sb()->get_app_pointer(static_cast<void*>(exception));
   tainted<void*, rlbox_wasm2c_sandbox> tainted_excp = excp.to_tainted();
@@ -2275,6 +2297,11 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
     sandbox->sb()->invoke_sandbox_function(opj_image_destroy, jp2_image);
     ThrowWriterException(DelegateError,"UnableToEncodeImageFile");
   }
+  
+  tainted_codec.copy_and_verify_address([](uintptr_t p){
+    void** vp = (void**) p;
+    printf("codec: %p\n", *vp);
+  });
   
   sandbox->sb()->invoke_sandbox_function(opj_stream_set_read_function, tainted_stream, sandbox->read_cb);
   sandbox->sb()->invoke_sandbox_function(opj_stream_set_write_function, tainted_stream, sandbox->write_cb);
@@ -2303,6 +2330,11 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
       sandbox->fail("opj_start_compress status");
     }
     return status;
+  });
+
+  tainted_codec.copy_and_verify_address([](uintptr_t p){
+    void** vp = (void**) p;
+    printf("codec: %p\n", *vp);
   });
   
   OPJ_BOOL encode_status = sandbox->sb()->invoke_sandbox_function(
