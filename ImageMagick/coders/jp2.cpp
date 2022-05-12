@@ -95,6 +95,13 @@ using namespace rlbox;
 // #define JP2_IMAGE__VERIFIER__TEST
 #define JP2_IMAGE__VERIFIER__TEST_VALUE 0
 
+// #define COMP_SGND__VERIFIER__TEST
+#define COMP_SGND__VERIFIER__TEST_VALUE 2
+
+// #define COMP_DATA__VERIFIER__TEST
+#define COMP_DATA__VERIFIER__TEST_VALUE malloc(1)
+
+
 // #define ERROR_MESSAGE__VERIFIER__TEST
 #define ERROR_MESSAGE__VERIFIER__TEST_VALUE "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789x" // 301 characters + null
 
@@ -518,11 +525,11 @@ jp2_comp__verifier(std::unique_ptr<tainted<opj_image_comp_t, rlbox_wasm2c_sandbo
   opj_image_comp_t* comp = (opj_image_comp_t*) malloc(sizeof(opj_image_comp_t));
 
   comp->dx = safe_ptr.get()->dx.copy_and_verify([](OPJ_UINT32 dx){
-    if (dx == 0) sandbox->fail("dx");
+    if (dx == 0) sandbox->fail("comp->dx");
     return dx;
   });
   comp->dy = safe_ptr.get()->dy.copy_and_verify([](OPJ_UINT32 dy){
-    if (dy == 0) sandbox->fail("dy");
+    if (dy == 0) sandbox->fail("comp->dy");
     return dy;
   });
   comp->w = safe_ptr.get()->w.copy_and_verify([](OPJ_UINT32 w){ return w; });
@@ -531,11 +538,28 @@ jp2_comp__verifier(std::unique_ptr<tainted<opj_image_comp_t, rlbox_wasm2c_sandbo
   comp->y0 = safe_ptr.get()->y0.copy_and_verify([](OPJ_UINT32 y0){ return y0; });
   comp->prec = safe_ptr.get()->prec.copy_and_verify([](OPJ_UINT32 prec){ return prec; });
   comp->bpp = safe_ptr.get()->bpp.copy_and_verify([](OPJ_UINT32 bpp){ return bpp; });
-  comp->sgnd = safe_ptr.get()->sgnd.copy_and_verify([](OPJ_UINT32 sgnd){ return sgnd; });
+  comp->sgnd = safe_ptr.get()->sgnd.copy_and_verify([](OPJ_UINT32 sgnd){
+    OPJ_UINT32 sgnd;
+#ifdef COMP_SGND__VERIFIER__TEST
+    sgnd = COMP_SGND__VERIFIER__TEST_VALUE;
+#else
+    sgnd = sgnd_;
+#endif
+
+    if (!(sgnd == 0 || sgnd == 1)) sandbox->fail("comp->sgnd");
+    return sgnd;
+  });
   comp->resno_decoded = safe_ptr.get()->resno_decoded.copy_and_verify([](OPJ_UINT32 r){ return r; });
   comp->factor = safe_ptr.get()->factor.copy_and_verify([](OPJ_UINT32 fac){ return fac; });
   comp->alpha = safe_ptr.get()->alpha.copy_and_verify([](OPJ_UINT32 alpha){ return alpha; });
   comp->data = safe_ptr.get()->data.copy_and_verify_address([&comp](uintptr_t addr){
+    uintptr_t addr;
+#ifdef COMP_DATA__VERIFIER__TEST
+    addr = COMP_DATA__VERIFIER__TEST_VALUE;
+#else
+    addr = addr_;
+#endif
+
     if (addr != 0) {
       OPJ_INT32* data = (OPJ_INT32*) malloc(sizeof(OPJ_INT32)*(comp->w)*(comp->h));
       memcpy(data, (OPJ_INT32*) addr, sizeof(OPJ_INT32)*(comp->w)*(comp->h)); 
@@ -2275,12 +2299,20 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
   tainted<void*, rlbox_wasm2c_sandbox> tainted_excp = excp.to_tainted();
   printf("Is excp app ptr registered? %d\n", !excp.is_unregistered());
   
-  sandbox->sb()->invoke_sandbox_function(opj_set_warning_handler, tainted_codec, sandbox->warn_cb, tainted_excp);
-  sandbox->sb()->invoke_sandbox_function(opj_set_error_handler, tainted_codec, sandbox->error_cb, tainted_excp);
+  sandbox->sb()->invoke_sandbox_function(
+    opj_set_warning_handler, tainted_codec, sandbox->warn_cb, tainted_excp
+  );
+  sandbox->sb()->invoke_sandbox_function(
+    opj_set_error_handler, tainted_codec, sandbox->error_cb, tainted_excp
+  );
 
-  sandbox->sb()->invoke_sandbox_function(opj_setup_encoder, tainted_codec, parameters, jp2_image);
+  sandbox->sb()->invoke_sandbox_function(
+    opj_setup_encoder, tainted_codec, parameters, jp2_image
+  );
 
-  tainted<opj_stream_t*, rlbox_wasm2c_sandbox> tainted_stream = sandbox->sb()->invoke_sandbox_function(opj_stream_create, OPJ_J2K_STREAM_CHUNK_SIZE, OPJ_FALSE);
+  tainted<opj_stream_t*, rlbox_wasm2c_sandbox> tainted_stream = sandbox->sb()->invoke_sandbox_function(
+    opj_stream_create, OPJ_J2K_STREAM_CHUNK_SIZE, OPJ_FALSE
+  );
 
   if (tainted_stream == nullptr) 
   {
@@ -2300,7 +2332,9 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
   tainted<void*, rlbox_wasm2c_sandbox> tainted_image = ap.to_tainted();
   printf("Is app ptr registered? %d\n", !ap.is_unregistered());
 
-  sandbox->sb()->invoke_sandbox_function(opj_stream_set_user_data, tainted_stream, tainted_image, tainted_free_func);
+  sandbox->sb()->invoke_sandbox_function(
+    opj_stream_set_user_data, tainted_stream, tainted_image, tainted_free_func
+  );
 
   jp2_status = sandbox->sb()->invoke_sandbox_function(
     opj_start_compress, tainted_codec, jp2_image, tainted_stream
