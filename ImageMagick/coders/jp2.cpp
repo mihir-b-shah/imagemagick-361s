@@ -258,7 +258,7 @@ using namespace rlbox;
   f(char*, cp_comment, FIELD_NORMAL, ##__VA_ARGS__) g() \
   f(int, csty, FIELD_NORMAL, ##__VA_ARGS__) g() \
   f(OPJ_PROG_ORDER, prog_order, FIELD_NORMAL, ##__VA_ARGS__) g() \
-  f(unsigned int[sizeof(opj_poc_t)*32], POC, FIELD_NORMAL, ##__VA_ARGS__) g() \
+  f(unsigned char[sizeof(opj_poc_t)*32], POC, FIELD_NORMAL, ##__VA_ARGS__) g() \
   f(OPJ_UINT32, numpocs, FIELD_NORMAL, ##__VA_ARGS__) g() \
   f(int, tcp_numlayers, FIELD_NORMAL, ##__VA_ARGS__) g() \
   f(float[100], tcp_rates, FIELD_NORMAL, ##__VA_ARGS__) g() \
@@ -1868,8 +1868,9 @@ static int jp2_cparam_dxy__verifier(int dv_) {
 #else
   dv = dv_;
 #endif
+  printf("Encountered dv: %d\n", dv_);
 
-  if (dv < 0) {
+  if (dv < -1) {
     sandbox->fail("subsampling_d[xy]");
   }
   return dv;
@@ -2093,6 +2094,8 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
     int dy_buf;
 
     (void) sscanf(image_info->sampling_factor,"%d:%d", &dx_buf, &dy_buf);
+    printf("before: %d %d\n", parameters->subsampling_dx.copy_and_verify(jp2_cparam_dxy__verifier), parameters->subsampling_dy.copy_and_verify(jp2_cparam_dxy__verifier));
+    printf("read dx: %d, dy: %d\n", dx_buf, dy_buf);
     parameters->subsampling_dx = dx_buf;
     parameters->subsampling_dy = dy_buf;
   }
@@ -2143,7 +2146,7 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
     jp2_info[i].h=(OPJ_UINT32) image->rows;
   }
 
-  tainted<opj_image_cmptparm_t*, rlbox_wasm2c_sandbox> tainted_info = sandbox->sb()->malloc_in_sandbox<opj_image_cmptparm_t>();
+  tainted<opj_image_cmptparm_t*, rlbox_wasm2c_sandbox> tainted_info = sandbox->sb()->malloc_in_sandbox<opj_image_cmptparm_t>(5);
   // OK, since only primitives.
   memcpy(tainted_info.unverified_safe_pointer_because(sizeof(jp2_info), "Memcpying to the info object"), 
     &jp2_info, sizeof(jp2_info));
@@ -2155,6 +2158,7 @@ static MagickBooleanType WriteJP2Image(const ImageInfo *image_info,Image *image,
   {
     ThrowWriterException(DelegateError,"UnableToEncodeImageFile");
   }
+
   jp2_image->x0 = parameters->image_offset_x0.copy_and_verify(jp2_cparam_offset_xy__verifier);
   jp2_image->y0 = parameters->image_offset_y0.copy_and_verify(jp2_cparam_offset_xy__verifier);
   jp2_image->x1 = (unsigned int) (2*parameters->image_offset_x0.copy_and_verify(jp2_cparam_offset_xy__verifier) + (image->columns-1)* (parameters->subsampling_dx.copy_and_verify(jp2_cparam_dxy__verifier)+1));
