@@ -61,8 +61,6 @@
 
 static int MagickMain(int argc,char **argv)
 {
-  std::cout << "Starting up.\n";
-
 #define MagickCommandSize(name,use_metadata,command) \
   { (name), sizeof(name)-1, (use_metadata), (command) }
 
