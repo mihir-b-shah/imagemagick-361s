@@ -101,6 +101,8 @@ using namespace rlbox;
 // #define COMP_DATA__VERIFIER__TEST
 #define COMP_DATA__VERIFIER__TEST_VALUE malloc(1)
 
+// #define ICC_PROFILE_BUF__VERIFIER__TEST
+#define ICC_PROFILE_BUF__VERIFIER__TEST_VALUE malloc(1)
 
 // #define ERROR_MESSAGE__VERIFIER__TEST
 #define ERROR_MESSAGE__VERIFIER__TEST_VALUE "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789x" // 301 characters + null
@@ -636,8 +638,23 @@ jp2_image__verifier(std::unique_ptr<tainted<opj_image_t, rlbox_wasm2c_sandbox>> 
   memcpy(
     img->icc_profile_buf,
     // safe_ptr.get()->icc_profile_buf.unverified_safe_pointer_because(img->icc_profile_len, "Copying icc profile buf"),
+<<<<<<< Updated upstream
     safe_ptr.get()->icc_profile_buf.copy_and_verify_address([img] (uintptr_t buffer) {
       if (img->icc_profile_len == 0 && buffer != 0) {
+=======
+    safe_ptr.get()->icc_profile_buf.copy_and_verify_address([img] (OPJ_BYTE *buffer) {
+      OPJ_BYTE *buffer;
+#ifdef ICC_PROFILE_BUF__VERIFIER__TEST
+      buffer = ICC_PROFILE_BUF__VERIFIER__TEST_VALUE;
+#else
+      buffer = std::move(buffer_);
+#endif
+
+      if (
+        (img->icc_profile_len == 0 && buffer != nullptr) ||
+        (sandbox->is_in_sandbox(img->icc_profile_buf))
+      ) {
+>>>>>>> Stashed changes
         sandbox->fail("img_profile_buf");
       }
       return (void*) buffer;
@@ -846,7 +863,11 @@ static OPJ_OFF_T seek_offset__verifier(OPJ_OFF_T offset_) {
   offset = offset_;
 #endif
 
+<<<<<<< Updated upstream
   if (global__use_initial_user_data_length && offset >= global__initial_user_data_length) {
+=======
+  if (global__use_initial_user_data_length && offset > global__initial_user_data_length) {
+>>>>>>> Stashed changes
     sandbox->fail("seek offset");
   }
   return offset;
@@ -1056,25 +1077,27 @@ static OPJ_UINT32 j2k_state__verifier(OPJ_UINT32 state_) {
 */
 
 static OPJ_BOOL jp2_status__set_decode_area__verifier(OPJ_BOOL status_, tainted<opj_codec_t*, rlbox_wasm2c_sandbox> codec) {
-  //! opj_codec_private_t not exported by openjpeg
-  // tainted<opj_codec_private_t *> tainted_codec_private = sandbox_reinterpret_cast<opj_codec_private_t *>(tainted_codec);
-  // tainted<opj_jp2_t *>p_jp2 = sandbox_reinterpret_cast<opj_jp2_t *>(tainted_codec_private->m_codec);
-  // tainted<opj_j2k_t *>p_j2k = p_jp2->j2k;
-  // OPJ_UINT32 tile_width = p_j2k->m_cp.tw.unverified_safe_because("required == 1 in following if condition");
-  // OPJ_UINT32 tile_height = p_j2k->m_cp.th.unverified_safe_because("required == 1 in following if condition");
-  // OPJ_UINT32 j2k_state = p_j2k->m_specific_param.m_decoder.m_state.copy_and_verify(j2k_state__verifier);
+  // ! opj_codec_private_t not exported by openjpeg
+  /*
+  tainted<opj_codec_private_t *> tainted_codec_private = sandbox_reinterpret_cast<opj_codec_private_t *>(tainted_codec);
+  tainted<opj_jp2_t *>p_jp2 = sandbox_reinterpret_cast<opj_jp2_t *>(tainted_codec_private->m_codec);
+  tainted<opj_j2k_t *>p_j2k = p_jp2->j2k;
+  OPJ_UINT32 tile_width = p_j2k->m_cp.tw.unverified_safe_because("required == 1 in following if condition");
+  OPJ_UINT32 tile_height = p_j2k->m_cp.th.unverified_safe_because("required == 1 in following if condition");
+  OPJ_UINT32 j2k_state = p_j2k->m_specific_param.m_decoder.m_state.copy_and_verify(j2k_state__verifier);
 
-  // if (status != OPJ_FALSE && ( // this condition implies status should be false
-  //   !tainted_codec_private ||
-  //   !tainted_codec_private->is_decompressor.unverified_safe_because("tainted boolean property access") ||
-  //   !(
-  //     (tile_width == 1 && tile_height == 1 && p_j2k->m_cp.tcps[0].m_data != nullptr) ||
-  //     !(j2k_state != J2K_STATE_TPHSOT)
-  //   )
-  //   // non-exhaustive, but further specificity is not O(1) and is excessively complex
-  // )) {
-  //   sandbox->fail("opj_set_decode_area status");
-  // }
+  if (status != OPJ_FALSE && ( // this condition implies status should be false
+    !tainted_codec_private ||
+    !tainted_codec_private->is_decompressor.unverified_safe_because("tainted boolean property access") ||
+    !(
+      (tile_width == 1 && tile_height == 1 && p_j2k->m_cp.tcps[0].m_data != nullptr) ||
+      !(j2k_state != J2K_STATE_TPHSOT)
+    )
+    // non-exhaustive, but further specificity is not O(1) and is excessively complex
+  )) {
+    sandbox->fail("opj_set_decode_area status");
+  }
+  */
   OPJ_BOOL status;
 #ifdef JP2_STATUS__SET_DECODE_AREA__VERIFIER__TEST
   status = JP2_STATUS__SET_DECODE_AREA__VERIFIER__TEST_VALUE;
