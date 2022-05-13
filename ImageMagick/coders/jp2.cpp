@@ -1918,7 +1918,7 @@ static int jp2_cparam_dxy__verifier(int dv_) {
 #endif
   //printf("Encountered dv: %d\n", dv_);
 
-  if (dv < -1) {
+  if (dv < -1 || dv == 0) {
     sandbox->fail("subsampling_d[xy]");
   }
   return dv;
