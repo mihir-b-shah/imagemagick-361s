@@ -845,7 +845,7 @@ static OPJ_OFF_T seek_offset__verifier(OPJ_OFF_T offset_) {
   offset = offset_;
 #endif
 
-  if (global__user_data_length != -1 && global__user_data_length != offset) {
+  if (global__user_data_length == -1) {
     sandbox->fail("seek offset");
   }
   return offset;
@@ -919,7 +919,7 @@ static OPJ_OFF_T skip_offset__verifier(OPJ_OFF_T offset_) {
   offset = offset_;
 #endif
 
-  if (global__user_data_length != -1 && global__user_data_length != offset) {
+  if (global__user_data_length == -1) {
     sandbox->fail("skip offset");
   }
   return offset;
@@ -1006,8 +1006,11 @@ static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2WriteHandler(
                                   tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> tainted_len,
                                   tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx)
 {
+  printf("Hit write handler.\n");
+
   void* buffer = tainted_buf.copy_and_verify_address(write_buffer__verifier);
   OPJ_SIZE_T length = tainted_len.copy_and_verify(write_length__verifier);
+  printf("Writing length %lu\n", length);
   void* context = sandbox->sb()->lookup_app_ptr(tainted_ctx);
 
   Image
@@ -1018,6 +1021,7 @@ static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2WriteHandler(
 
   image=(Image *) context;
   count=WriteBlob(image,(ssize_t) length,(unsigned char *) buffer);
+  printf("Writing count %lu\n", count);
   return((OPJ_SIZE_T) count);
 }
 
