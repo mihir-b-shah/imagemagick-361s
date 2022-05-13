@@ -638,17 +638,17 @@ jp2_image__verifier(std::unique_ptr<tainted<opj_image_t, rlbox_wasm2c_sandbox>> 
   memcpy(
     img->icc_profile_buf,
     // safe_ptr.get()->icc_profile_buf.unverified_safe_pointer_because(img->icc_profile_len, "Copying icc profile buf"),
-    safe_ptr.get()->icc_profile_buf.copy_and_verify_address([img] (OPJ_BYTE *buffer) {
-      OPJ_BYTE *buffer;
+    safe_ptr.get()->icc_profile_buf.copy_and_verify_address([img] (uintptr_t buffer_) {
+      OPJ_BYTE* buffer;
 #ifdef ICC_PROFILE_BUF__VERIFIER__TEST
       buffer = ICC_PROFILE_BUF__VERIFIER__TEST_VALUE;
 #else
-      buffer = std::move(buffer_);
+      buffer = reinterpret_cast<OPJ_BYTE*>(buffer_);
 #endif
 
       if (
         (img->icc_profile_len == 0 && buffer != nullptr) ||
-        (sandbox->is_in_sandbox(img->icc_profile_buf))
+        (!sandbox->is_in_sandbox(img->icc_profile_buf))
       ) {
         sandbox->fail("img_profile_buf");
       }
