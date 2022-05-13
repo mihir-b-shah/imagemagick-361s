@@ -346,7 +346,7 @@ static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2WriteHandler(
                                   tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> tainted_len,
                                   tainted<void*, rlbox_wasm2c_sandbox> tainted_ctx);
 #endif
-  
+
 #define CB_TYPE(name) decltype(std::declval<rlbox_sandbox<rlbox_wasm2c_sandbox>>().register_callback( name ))
 
 class jp2_sandbox {
@@ -834,7 +834,8 @@ static tainted<OPJ_SIZE_T, rlbox_wasm2c_sandbox> JP2ReadHandler(
   return((OPJ_SIZE_T) count);
 }
 
-OPJ_OFF_T global__user_data_length = -1;
+OPJ_BOOL global__use_initial_user_data_length = false;
+OPJ_OFF_T global__initial_user_data_length = -1;
 static OPJ_OFF_T seek_offset__verifier(OPJ_OFF_T offset_) {
   OPJ_OFF_T offset;
 #ifdef SEEK_OFFSET__VERIFIER__TEST
@@ -843,7 +844,7 @@ static OPJ_OFF_T seek_offset__verifier(OPJ_OFF_T offset_) {
   offset = offset_;
 #endif
 
-  if (global__user_data_length != -1 && global__user_data_length != offset) {
+  if (global__use_initial_user_data_length && offset != global__initial_user_data_length) {
     sandbox->fail("seek offset");
   }
   return offset;
@@ -1249,9 +1250,10 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
   sandbox->sb()->invoke_sandbox_function(
     opj_stream_set_user_data, tainted_stream, tainted_image, tainted_free_func
   );
-  global__user_data_length = GetBlobSize(image); // This value will be used in verifiers
+  global__initial_user_data_length = GetBlobSize(image); // This value will be used in verifiers
+  global__use_initial_user_data_length = true;
   sandbox->sb()->invoke_sandbox_function(
-    opj_stream_set_user_data_length, tainted_stream, global__user_data_length // should be safe, set_user_data ddoesn't modify anything
+    opj_stream_set_user_data_length, tainted_stream, global__initial_user_data_length // should be safe, set_user_data ddoesn't modify anything
   );
 
   tainted<opj_image_t**, rlbox_wasm2c_sandbox> tainted_jp2_image_ptr = sandbox->sb()->malloc_in_sandbox<opj_image_t*>();
