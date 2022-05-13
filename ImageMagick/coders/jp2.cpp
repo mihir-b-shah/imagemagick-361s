@@ -638,10 +638,6 @@ jp2_image__verifier(std::unique_ptr<tainted<opj_image_t, rlbox_wasm2c_sandbox>> 
   memcpy(
     img->icc_profile_buf,
     // safe_ptr.get()->icc_profile_buf.unverified_safe_pointer_because(img->icc_profile_len, "Copying icc profile buf"),
-<<<<<<< Updated upstream
-    safe_ptr.get()->icc_profile_buf.copy_and_verify_address([img] (uintptr_t buffer) {
-      if (img->icc_profile_len == 0 && buffer != 0) {
-=======
     safe_ptr.get()->icc_profile_buf.copy_and_verify_address([img] (OPJ_BYTE *buffer) {
       OPJ_BYTE *buffer;
 #ifdef ICC_PROFILE_BUF__VERIFIER__TEST
@@ -654,7 +650,6 @@ jp2_image__verifier(std::unique_ptr<tainted<opj_image_t, rlbox_wasm2c_sandbox>> 
         (img->icc_profile_len == 0 && buffer != nullptr) ||
         (sandbox->is_in_sandbox(img->icc_profile_buf))
       ) {
->>>>>>> Stashed changes
         sandbox->fail("img_profile_buf");
       }
       return (void*) buffer;
@@ -863,11 +858,7 @@ static OPJ_OFF_T seek_offset__verifier(OPJ_OFF_T offset_) {
   offset = offset_;
 #endif
 
-<<<<<<< Updated upstream
-  if (global__use_initial_user_data_length && offset >= global__initial_user_data_length) {
-=======
   if (global__use_initial_user_data_length && offset > global__initial_user_data_length) {
->>>>>>> Stashed changes
     sandbox->fail("seek offset");
   }
   return offset;
